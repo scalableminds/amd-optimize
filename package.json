@@ -1,0 +1,21 @@
+{
+  "name": "fast-rjs",
+  "version": "0.0.0",
+  "description": "An alternative to the r.js optimizer that's based on streams",
+  "main": " ",
+  "scripts": {
+    "test": " "
+  },
+  "repository": {
+    "type": "git",
+    "url": " "
+  },
+  "author": "Norman Rzepka <norman@scm.io>",
+  "license": "MIT",
+  "dependencies": {
+    "async": "~0.2.10",
+    "lodash": "~2.4.1",
+    "vinyl": "~0.2.3",
+    "vinyl-fs": "0.0.2"
+  }
+}
