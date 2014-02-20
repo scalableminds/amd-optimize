@@ -1,12 +1,12 @@
-fs = require("fs")
-path = require("path")
+_       = require("lodash")
+fs      = require("fs")
+path    = require("path")
 vinylFs = require("vinyl-fs")
-async = require("async")
-_ = require("lodash")
+async   = require("async")
 
-defineRegex = /(define|require)\((?:\s*"([^"]*)"\s*,)?\s*\[([^\]]*)\]\s*,\s*function/g
+trace   = require("./src/trace")
+concat  = require("./src/concat")
 
-Module = (@name, @fileName, @deps = []) -> 
 
 printTree = (currentModule, prefix = "") ->
 
@@ -25,189 +25,85 @@ printTree = (currentModule, prefix = "") ->
   )
 
 
-gatherModules = (currentModule, output = []) ->
+collectModules = (currentModule, omitInline = true, output = []) ->
 
   currentModule.deps.forEach( (depModule) ->
-    gatherModules(depModule, output)
+    collectModules(depModule, omitInline, output)
   )
-  if not _.contains(output, currentModule)
+  if not (omitInline and currentModule.isInline) and not _.any(output, name : currentModule.name)
     output.push(currentModule)
   return output
 
 
-optimize = (startModuleName, config = {}, callback) ->
+readConfig = (configFile, config = {}, callback) ->
 
-  allDeps = []
-  depsByName = {}
-  fileBuffer = {}
+  fs.readFile(config.mainConfigFile, "utf8", (err, configScriptData) ->
 
-  allModules = []
-
-  resolveModuleName = (moduleName, relativeTo = "") ->
-
-    if moduleName[0] == "."
-      return path.join(path.dirname(relativeTo), moduleName)
-    else
-      return moduleName
-
-
-  resolveModuleFileName = (moduleName) ->
-
-    if config.paths[moduleName]
-      if config.paths[moduleName] == "empty:"
-        return
-      else
-        return path.resolve(config.baseUrl, config.paths[moduleName]) + ".js"
-    else
-      return path.resolve(config.baseUrl, moduleName) + ".js"
-
-
-  emitModule = (moduleName, fileName, deps) ->
-
-    mod = new Module(moduleName, fileName, deps)
-    allModules.push(mod)
-    # console.log("Resolved", moduleName, fileName, _.map(deps, "name"))
-    return mod
-
-
-  resolveModules = (moduleNames, callback) ->
-
-    async.mapSeries(moduleNames, resolveModule, callback)
-    return
-
-
-  parseRequireDefinitions = (fileData, callback) ->
-
-    matches = []
-    fileData.replace(
-      defineRegex
-      (fullMatch, method, _moduleName, deps) ->
-
-        deps = deps
-          .replace(/\"([^\"]*)\"/g, "$1")
-          .split(",")
-          .map((a) -> a.trim())
-
-        deps = _.compact(deps)
-
-        matches.push(
-          method : method
-          moduleName : _moduleName
-          deps : deps
-        )
-        return fullMatch
+    config = _.merge(
+      {}
+      Function("""
+        var output,
+          require = {
+            config : function (config) { output = config; }
+          },
+          define = function () {};
+        #{configScriptData};
+        return output;
+        """)()
+      config
     )
-
-    callback(null, fileData, matches)
-    return
-
-
-  resolveInlinedModule = (moduleName, deps, fileName, callback) ->
-
-    async.waterfall([
-      
-      (callback) -> resolveModules(deps, callback)
-      
-      (modules, callback) -> 
-        emitModule(moduleName, fileName, _.compact(modules))
-        callback()
-
-    ], callback)
-    return
+    callback(
+      null
+      config
+    )
+  )
 
 
-  resolveModule = (moduleName, callback) ->
-
-    module = _.detect(allModules, name : moduleName)
-    if module
-      callback(null, module)
-      return
-
-    fileName = resolveModuleFileName(moduleName)
-    if not fileName
-      callback()
-      return
-
-    # console.log("Resolving", moduleName, fileName)
-
-    async.waterfall([
-
-      (callback) -> fs.readFile(fileName, "utf8", callback)
-
-      parseRequireDefinitions
-
-      (fileData, definitions, callback) ->
-
-        async.mapSeries(
-          definitions
-          (def, callback) ->
-
-            def.deps = def.deps.map( (depName) -> resolveModuleName(depName, def.moduleName ? moduleName) )
-
-            if def.method == "define" and def.moduleName != undefined
-              async.waterfall([
-                (callback) -> resolveInlinedModule(def.moduleName, def.deps, fileName, callback)
-                (callback) -> callback(null, [])
-              ], callback)
-
-            else
-              resolveModules(def.deps, callback)
-            return
-          callback
-        )
-
-      (unflatModules, callback) ->
-
-        depModules = _.compact(_.flatten(unflatModules))
-        callback(null, emitModule(moduleName, fileName, depModules))
-
-    ], callback)
-    return
-      
-
-
+optimize = (startModuleName, config, callback) ->
 
   async.waterfall([
 
-    (callback) ->
+    (callback) -> 
+      readConfig(config.mainConfigFile, config, callback)
 
-      fs.readFile(config.mainConfigFile, "utf8", (err, configScriptData) ->
+    (config, callback) -> 
+      trace(startModuleName, config, null, callback)
 
-        config = _.merge(
-          {}
-          Function("""
-            var output,
-              require = {
-                config : function (config) { output = config; }
-              },
-              define = function () {};
-            #{configScriptData};
-            return output;
-            """)()
-          config
-        )
-        # console.log("Config", config)
-        callback()
-      )
-
-    (callback) ->
-
-      resolveModule(startModuleName, callback)
-
-    (module, callback) ->
-
+    (module, callback) -> 
       # printTree(module)
-      # gatherModules(module).forEach((a) -> console.log(a.name, "in", path.relative(process.cwd(), a.fileName)))
-      console.log("Finished")
+      callback(null, collectModules(module))
+
+    (modules, callback) -> 
+      concat(modules, callback)
+
+    (vinylFile, callback) -> 
+      vinylFile.cwd = process.cwd()
+      vinylFile.base = process.cwd()
+      vinylFile.path = path.resolve(process.cwd(), "#{startModuleName}.min.js")
+      callback(null, vinylFile)
 
   ], callback)
 
 
 optimize(
-  "index"
-  mainConfigFile : "build/javascripts/require_config.js"
-  baseUrl : "build/javascripts"
-  paths :
-    "services/stack_service/workers/worker": "empty:"
-    cordova : "empty:"
+  "main"
+  {
+    mainConfigFile : "public/javascripts/require_config.js"
+    baseUrl : "public/javascripts"
+    paths :
+      "services/stack_service/workers/worker": "empty:"
+      "admin/views/task/task_overview_view": "empty:"
+      "routes": "empty:"
+      cordova : "empty:"
+  }
+  (err, vinylFile) ->
+    if err
+      console.error(err)
+    # console.log(_.map(modules, "name"))
+    # console.log("vinyl", vinylFile)
+    else
+      outputStream = vinylFs.dest(".")
+      outputStream.write(vinylFile)
+      outputStream.end()
+      outputStream.on("end", -> console.log("Finished", vinylFile.path))
 )
