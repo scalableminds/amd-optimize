@@ -83,6 +83,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
 
       (fileData, ast, definitions, callback) ->
 
+        if _.filter(definitions, (def) -> return def.method == "define" and def.moduleName == undefined).length > 1
+          callback(new Error("A module must not have more than one anonymous 'define' calls."))
+          return
+
         module.hasDefine = _.any(definitions, (def) -> 
           return def.method == "define" and (def.moduleName == undefined or def.moduleName == moduleName)
         )
@@ -105,22 +109,46 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
           callback
         )
 
+
       (unflatModules, callback) ->
 
-        depModules = _.compact(_.flatten(unflatModules))
+        callback(null, _.compact(_.flatten(unflatModules)))
+
+
+      (depModules, callback) ->
+
         module.deps.push(depModules...)
         module.isAnonymous = true
 
-        if shim = config.shim[moduleName]
-          # if _.isArray(shim)
-          #   module.deps.push(shim...)
-          # else
-            # if shim.deps
-            #   module.deps.push(shim...)
-          if shim.exports
-            module.exports = shim.exports
+        async.waterfall([
 
-        callback(null, emitModule(module))
+          (callback) ->
+
+            additionalDepNames = null
+
+            if shim = config.shim[module.name]
+          
+              if shim.exports
+                module.exports = shim.exports
+
+              if _.isArray(shim)
+                additionalDepNames = shim
+              else if shim.deps
+                additionalDepNames = shim.deps
+
+            if additionalDepNames
+              resolveModules(additionalDepNames, callback)
+            else
+              callback(null, [])
+
+
+          (depModules, callback) ->
+
+            module.deps.push(depModules...)
+            callback(null, emitModule(module))
+
+        ], callback)
+        return
 
     ], callback)
     return

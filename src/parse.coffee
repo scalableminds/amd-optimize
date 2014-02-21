@@ -1,7 +1,7 @@
 _ = require("lodash")
 acorn = require("acorn")
 walk = require("acorn/util/walk")
-escodegen = require("escodegen")
+recast = require("recast")
 
 valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
@@ -31,6 +31,7 @@ module.exports = parseRequireDefinitions = (fileData, callback) ->
         method : "define"
         moduleName : moduleName
         deps : deps ? []
+        node : node
       )
 
 
@@ -39,6 +40,7 @@ module.exports = parseRequireDefinitions = (fileData, callback) ->
         method : "require"
         moduleName : undefined
         deps : valuesFromArrayExpression(node.arguments[0])
+        node : node
       )
 
   )
