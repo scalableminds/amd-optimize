@@ -76,11 +76,14 @@ optimize = (startModuleName, config, callback) ->
     (modules, callback) -> 
       concat(modules, callback)
 
-    (vinylFile, callback) -> 
-      vinylFile.cwd = process.cwd()
-      vinylFile.base = process.cwd()
-      vinylFile.path = path.resolve(process.cwd(), "#{startModuleName}.min.js")
-      callback(null, vinylFile)
+    (files, callback) -> 
+      
+      callback(null, files.map((file, i) ->
+        file.cwd = process.cwd()
+        file.base = process.cwd()
+        file.path = path.resolve(process.cwd(), "#{startModuleName}.min.js#{if i == 1 then ".map" else ""}")
+        return file
+      ))
 
   ], callback)
 
@@ -88,6 +91,7 @@ optimize = (startModuleName, config, callback) ->
 optimize(
   "main"
   {
+    cwd : "public"
     mainConfigFile : "public/javascripts/require_config.js"
     baseUrl : "public/javascripts"
     paths :
@@ -95,15 +99,17 @@ optimize(
       "admin/views/task/task_overview_view": "empty:"
       "routes": "empty:"
       cordova : "empty:"
+    sourceMap : true
   }
-  (err, vinylFile) ->
+  (err, files) ->
     if err
       console.error(err)
     # console.log(_.map(modules, "name"))
     # console.log("vinyl", vinylFile)
     else
       outputStream = vinylFs.dest(".")
-      outputStream.write(vinylFile)
+      outputStream.write(files[0])
+      outputStream.write(files[1])
       outputStream.end()
-      outputStream.on("end", -> console.log("Finished", vinylFile.path))
+      outputStream.on("end", -> console.log("Finished"))
 )

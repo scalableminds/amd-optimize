@@ -1,16 +1,18 @@
-_       = require("lodash")
-fs      = require("fs")
-path    = require("path")
-async   = require("async")
+_         = require("lodash")
+fs        = require("fs")
+path      = require("path")
+async     = require("async")
+VinylFile = require("vinyl")
 
-parse   = require("./parse")
+parse     = require("./parse")
 
 
 class Module
-  constructor : (@name, @fileName, @deps = []) -> 
+  constructor : (@name, @file, @deps = []) -> 
     @isAnonymous = false
     @isInline = false
     @hasDefine = false
+    @astNodes = []
 
 
 
@@ -42,21 +44,40 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
     return
 
 
-  resolveInlinedModule = (moduleName, deps, fileName, callback) ->
+  resolveInlinedModule = (moduleName, deps, astNode, vinylFile, callback) ->
 
     async.waterfall([
       
       (callback) -> resolveModules(deps, callback)
       
       (modules, callback) -> 
-        module = new Module(moduleName, fileName, _.compact(modules))
+        module = new Module(moduleName, vinylFile, _.compact(modules))
         module.hasDefine = true
         module.isInline = true
+        module.astNodes.push(astNode)
         emitModule(module)
         callback()
 
     ], callback)
     return
+
+  readVinyl = (fileName, callback) ->
+    async.waterfall([
+
+      (callback) -> fs.readFile(fileName, callback)
+
+      (fileData, callback) ->
+      
+        vinylFile = new VinylFile(
+          cwd : process.cwd()
+          base : path.resolve(process.cwd(), config.cwd)
+          path : fileName
+          contents : fileData
+        )
+        vinylFile.stringContents = vinylFile.contents.toString("utf8")
+        callback(null, vinylFile)
+
+    ], callback)
 
 
   resolveModule = (moduleName, callback) ->
@@ -71,17 +92,22 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
       callback()
       return
 
-    module = new Module(moduleName, fileName)
+    module = null
 
     # console.log("Resolving", moduleName, fileName)
 
     async.waterfall([
 
-      (callback) -> fs.readFile(fileName, "utf8", callback)
+      (callback) -> readVinyl(fileName, callback)
+
+      (file, callback) ->
+
+        module = new Module(moduleName, file)
+        callback(null, file)
 
       parse
 
-      (fileData, ast, definitions, callback) ->
+      (file, definitions, callback) ->
 
         if _.filter(definitions, (def) -> return def.method == "define" and def.moduleName == undefined).length > 1
           callback(new Error("A module must not have more than one anonymous 'define' calls."))
@@ -99,11 +125,12 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
 
             if def.method == "define" and def.moduleName != undefined and def.moduleName != moduleName
               async.waterfall([
-                (callback) -> resolveInlinedModule(def.moduleName, def.deps, fileName, callback)
+                (callback) -> resolveInlinedModule(def.moduleName, def.deps, def.node, file, callback)
                 (callback) -> callback(null, [])
               ], callback)
 
             else
+              module.astNodes.push(def.node)
               resolveModules(def.deps, callback)
             return
           callback

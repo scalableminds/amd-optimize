@@ -5,9 +5,10 @@ recast = require("recast")
 
 valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
-module.exports = parseRequireDefinitions = (fileData, callback) ->
+module.exports = parseRequireDefinitions = (file, callback) ->
 
-  ast = acorn.parse(fileData, sourceFile : "test.js")
+  ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : true)
+  file.ast = ast
 
   definitions = []
   walk.simple(ast, CallExpression : (node) ->
@@ -45,5 +46,5 @@ module.exports = parseRequireDefinitions = (fileData, callback) ->
 
   )
 
-  callback(null, fileData, ast, definitions)
+  callback(null, file, definitions)
   return
