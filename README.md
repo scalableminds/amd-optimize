@@ -34,6 +34,7 @@ gulp.task("scripts:index", function () {
     .pipe(gulp.dest("dist/scripts"));
 
 });
+```
 
 
 # Installation
@@ -55,40 +56,10 @@ $ npm install rjs-optimizer
 #### options.wrapShim
 #### options.loader
 
-// Submodule with distinct dependencies
-gulp.task("scripts:submodule", function () {
-  
-  return gulp.src("src/scripts/**/*.{js,coffee}")
-    .pipe(gif(coffee(), function (file) { return path.extname(file.path) == ".coffee"; } ))
-    .pipe(rjs("submodule", {
-      configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee()),
-      exclude : ["index"],
-      findNestedDependencies : true
-    }))
-    .pipe(concat("submodule.js"))
-    .pipe(uglify())
-    .pipe(gulp.dest("dist/scripts"));
-
-});
-
-// Sideload dependencies. Useful when working with bower components
-gulp.task("scripts:common", function () {
-  
-  return rjs("index", {
-      configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee())
-      loader : rjs.loader(
-        function (moduleName) { return path.join("src/{scripts,bower_components}", moduleName + ".{js,coffee}"); },
-        function () { return gif(coffee(), { return path.extname(file.path) == ".coffee"; } ); }
-      ),
-      wrapShim : true
-    })
-    .pipe(concat("index.js"))
-    .pipe(gulp.dest("dist/scripts"))
-});
-
 
 ## Recommended modules
 * [gulp-concat](https://www.npmjs.org/package/gulp-concat/): Concat the output files. Because that's the whole point of module optimization, right?
+
 ```js
 var concat = require("gulp-concat");
 
@@ -98,7 +69,9 @@ gulp.src("src/scripts/**/*.js")
   .pipe(gulp.dest("dist"));
 ```
 
+
 * [gulp-uglify](https://www.npmjs.org/package/gulp-uglify/): Minify the output files.
+
 ```js
 var uglify = require("gulp-uglify");
 
@@ -109,7 +82,9 @@ gulp.src("src/scripts/**/*.js")
   .pipe(gulp.dest("dist"));
 ```
 
+
 * [gulp-coffee](https://www.npmjs.org/package/gulp-coffee/): Precompile CoffeeScript source files. Or any other [language that compiles to JS](https://github.com/jashkenas/coffee-script/wiki/List-of-languages-that-compile-to-JS).
+
 ```js
 var coffee = require("gulp-coffee");
 
@@ -120,7 +95,9 @@ gulp.src("src/scripts/**/*.coffee")
   .pipe(gulp.dest("dist"));
 ```
 
+
 * [gulp-if](https://www.npmjs.org/package/gulp-if/): Conditionally pipe files through a transform stream. Useful for CoffeeScript precompilation.
+
 ```js
 var gif = require("gulp-if");
 
