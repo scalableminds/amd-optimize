@@ -126,6 +126,14 @@ describe "core", ->
   #     .on("end", done)
 
 
+  it "should trace CommonJS-style module definitions"
+
+  it "should exclude modules and their dependency tree"
+
+  it "should start searching for files, if no input but an output pipe"
+
+
+
 describe "shim", ->
 
   it "should add a `define` for non-AMD modules", (done) ->
@@ -263,8 +271,14 @@ describe "config file", ->
 
 describe "special paths", ->
 
-  it "should ignore requirejs plugins"
+  it "should ignore requirejs plugins", (done) ->
 
+    checkExpectedFiles(
+      ["bar.js", "plugin.js"]
+      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+        .pipe(rjs("plugin"))
+      done
+    )
 
 
   it "should ignore empty paths", (done) ->
@@ -282,5 +296,12 @@ describe "special paths", ->
     )
 
 
+  it "should ignore `exports` and `require` dependencies", (done) ->
 
-  it "should ignore `exports` and `require` dependencies"
+    checkExpectedFiles(
+      ["bar.js", "require_exports.js"]
+      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+        .pipe(rjs("require_exports"))
+      done
+    )
+
