@@ -86,6 +86,8 @@ readConfig = (configFileStream, config = {}, callback) ->
   configFileStream
     .on("data", (file) ->
 
+      console.log(file)
+
       config = _.merge(
         {}
         Function("""
@@ -108,7 +110,7 @@ readConfig = (configFileStream, config = {}, callback) ->
   return
 
 
-module.exports = rjs = (moduleName, options) ->
+module.exports = rjs = (moduleName, options = {}) ->
 
   fileBuffer = []
 
@@ -119,7 +121,7 @@ module.exports = rjs = (moduleName, options) ->
       # exclude : []
       findNestedDependencies : false
       # wrapShim : true
-      loader : (name, callback) -> callback(null, _.detect(fileBuffer, path : path.join(process.cwd(), options.baseUrl, name + ".js"))); return
+      loader : (name, callback) -> callback(null, _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))); return
     }
   )
 
@@ -127,7 +129,8 @@ module.exports = rjs = (moduleName, options) ->
     options.configFile = vinylFs.src(options.configFile)
 
   configStream = through.obj()
-  options.configFile.pipe(configStream)
+  if options.configFile
+    options.configFile.pipe(configStream)
 
   return through.obj(
     # transform
@@ -143,8 +146,10 @@ module.exports = rjs = (moduleName, options) ->
       async.waterfall([
 
         (callback) -> 
-          readConfig(configStream, options, callback)
-
+          if options.configFile
+            readConfig(configStream, options, callback)
+          else
+            callback(null, options)
 
         (config, callback) ->
 
@@ -170,7 +175,7 @@ module.exports.loader = (filenameResolver, pipe) ->
 
   (moduleName, callback) ->
 
-    console.log(filenameResolver(moduleName))
+    # console.log(filenameResolver(moduleName))
     source = vinylFs.src(filenameResolver(moduleName)).pipe(through.obj())
 
     if pipe

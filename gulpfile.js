@@ -1,29 +1,30 @@
 require("coffee-script").register();
 
-var gulp    = require("gulp");
-var coffee  = require("gulp-coffee");
-var gif     = require("gulp-if");
-var mocha   = require("gulp-mocha");
-var concat  = require("gulp-concat");
-var util    = require("gulp-util");
-var uglify  = require("gulp-uglify");
-var rjs     = require("./src/index.coffee");
+var gulp     = require("gulp");
+var coffee   = require("gulp-coffee");
+var gif      = require("gulp-if");
+var mocha    = require("gulp-mocha");
+var concat   = require("gulp-concat");
+var util     = require("gulp-util");
+var uglify   = require("gulp-uglify");
+var rjs      = require("./src/index.coffee");
 
-var path    = require("path");
-var through = require("through2");
+var path     = require("path");
+var through  = require("through2");
 
 
 gulp.task("compile", function (){
-  gulp.src("src/**/*.coffee")
+  return gulp.src("src/**/*.coffee")
     .pipe(coffee())
     .pipe(gulp.dest("lib"));
 });
 
 
 gulp.task("test", function () {
-  gulp.src("test/*_test.coffee")
-    .pipe(mocha({ reporter : "nyan" }));
+  return gulp.src("test/*_test.coffee")
+    .pipe(mocha({ reporter : "spec" }));
 });
+
 
 function logger() {
   return through.obj(function (file, enc, callback) {

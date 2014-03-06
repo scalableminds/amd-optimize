@@ -44,7 +44,6 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
         state.slice(0, -1)
         (ancestorNode) -> ancestorNode.type == "CallExpression" and (ancestorNode.callee.name == "define" or ancestorNode.callee.name == "require")
       )
-      console.log(defineAncestors)
       if config.findNestedDependencies or not defineAncestors
         definitions.push(
           method : "require"

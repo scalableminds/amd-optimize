@@ -29,7 +29,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
   resolveModuleFileName = (moduleName) ->
 
-    if config.paths[moduleName]
+    if config.paths and config.paths[moduleName]
       moduleName = config.paths[moduleName]
 
     if /!|^exports$|^require$|^empty:/.test(moduleName)
@@ -84,7 +84,6 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     async.waterfall([
 
       (callback) -> 
-        console.log(fileName)
         fileLoader(fileName, callback)
 
       (file, callback) ->
@@ -149,7 +148,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
             additionalDepNames = null
 
-            if shim = config.shim[module.name]
+            if config.shim and shim = config.shim[module.name]
 
               if module.hasDefine
                 console.log("[warn]", "Module '#{module.name}' is shimmed even though it has a proper define.")
