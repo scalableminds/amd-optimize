@@ -129,6 +129,8 @@ describe "core", ->
   it "should trace CommonJS-style module definitions"
 
   it "should exclude modules and their dependency tree"
+  
+  it "should shallowly exclude modules"
 
   it "should start searching for files, if no input but an output pipe"
 
