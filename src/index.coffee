@@ -4,7 +4,6 @@ path         = require("path")
 vinylFs      = require("vinyl-fs")
 async        = require("async")
 through      = require("through2")
-plumber      = require("gulp-plumber")
 
 Readable     = require("stream").Readable
 

@@ -1,7 +1,6 @@
 _      = require("lodash")
 acorn  = require("acorn")
 walk   = require("acorn/util/walk")
-recast = require("recast")
 
 valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
