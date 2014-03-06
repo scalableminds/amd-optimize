@@ -1,24 +1,39 @@
 {
-  "name": "fast-rjs",
-  "version": "0.0.0",
-  "description": "An alternative to the r.js optimizer that's based on streams",
+  "name": "amd-optimize",
+  "version": "0.0.1",
+  "description": "An alternative to the r.js optimizer that's based on streams. Made for gulp.",
   "main": " ",
   "scripts": {
-    "test": " "
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
     "url": " "
   },
-  "author": "Norman Rzepka <norman@scm.io>",
+  "keywords": [
+    "gulpplugin",
+    "gulpfriendly"
+  ],
+  "author": "Norman Rzepka <norman@scm.io> (http://scm.io)",
   "license": "MIT",
   "dependencies": {
     "async": "~0.2.10",
     "lodash": "~2.4.1",
     "vinyl": "~0.2.3",
     "vinyl-fs": "0.0.2",
-    "acorn": "~0.4.2",
+    "acorn": "git://github.com/marijnh/acorn.git",
     "ast-types": "^0.3.16",
-    "escodegen": "^1.2.0"
+    "escodegen": "^1.2.0",
+    "through2": "^0.4.1"
+  },
+  "devDependencies": {
+    "gulp-concat": "^2.1.7",
+    "gulp-mocha": "^0.4.1",
+    "gulp": "^3.5.5",
+    "gulp-coffee": "^1.4.1",
+    "coffee-script": "^1.7.1",
+    "gulp-if": "0.0.5",
+    "gulp-util": "^2.2.14",
+    "gulp-uglify": "^0.2.1"
   }
 }

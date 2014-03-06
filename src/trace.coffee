@@ -9,6 +9,7 @@ parse     = require("./parse")
 
 class Module
   constructor : (@name, @file, @deps = []) -> 
+    @isShallow = false
     @isAnonymous = false
     @isInline = false
     @hasDefine = false
@@ -16,7 +17,7 @@ class Module
 
 
 
-module.exports = traceModule = (startModuleName, config, allModules = [], callback) ->
+module.exports = traceModule = (startModuleName, config, allModules = [], fileLoader, callback) ->
 
   resolveModuleName = (moduleName, relativeTo = "") ->
 
@@ -29,12 +30,12 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
   resolveModuleFileName = (moduleName) ->
 
     if config.paths[moduleName]
-      if config.paths[moduleName] == "empty:"
-        return
-      else
-        return path.resolve(config.baseUrl, config.paths[moduleName]) + ".js"
+      moduleName = config.paths[moduleName]
+
+    if /!|^exports$|^require$|^empty:/.test(moduleName)
+      return
     else
-      return path.resolve(config.baseUrl, moduleName) + ".js"
+      return moduleName
 
 
 
@@ -61,24 +62,6 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
     ], callback)
     return
 
-  readVinyl = (fileName, callback) ->
-    async.waterfall([
-
-      (callback) -> fs.readFile(fileName, callback)
-
-      (fileData, callback) ->
-      
-        vinylFile = new VinylFile(
-          cwd : process.cwd()
-          base : path.resolve(process.cwd(), config.cwd)
-          path : fileName
-          contents : fileData
-        )
-        vinylFile.stringContents = vinylFile.contents.toString("utf8")
-        callback(null, vinylFile)
-
-    ], callback)
-
 
   resolveModule = (moduleName, callback) ->
 
@@ -89,7 +72,9 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
 
     fileName = resolveModuleFileName(moduleName)
     if not fileName
-      callback()
+      module = new Module(moduleName)
+      module.isShallow = true
+      callback(null, emitModule(module))
       return
 
     module = null
@@ -98,20 +83,31 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
 
     async.waterfall([
 
-      (callback) -> readVinyl(fileName, callback)
+      (callback) -> 
+        console.log(fileName)
+        fileLoader(fileName, callback)
 
       (file, callback) ->
 
+        if file
+          callback(null, file)
+        else
+          callback(new Error("No file for module '#{moduleName}' found."))
+
+      (file, callback) ->
+
+        file.stringContents = file.contents.toString("utf8")
         module = new Module(moduleName, file)
         callback(null, file)
 
-      parse
+      parse.bind(null, config)
 
       (file, definitions, callback) ->
 
         if _.filter(definitions, (def) -> return def.method == "define" and def.moduleName == undefined).length > 1
           callback(new Error("A module must not have more than one anonymous 'define' calls."))
           return
+
 
         module.hasDefine = _.any(definitions, (def) -> 
           return def.method == "define" and (def.moduleName == undefined or def.moduleName == moduleName)
@@ -154,6 +150,9 @@ module.exports = traceModule = (startModuleName, config, allModules = [], callba
             additionalDepNames = null
 
             if shim = config.shim[module.name]
+
+              if module.hasDefine
+                console.log("[warn]", "Module '#{module.name}' is shimmed even though it has a proper define.")
           
               if shim.exports
                 module.exports = shim.exports

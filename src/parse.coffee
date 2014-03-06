@@ -1,17 +1,17 @@
-_ = require("lodash")
-acorn = require("acorn")
-walk = require("acorn/util/walk")
+_      = require("lodash")
+acorn  = require("acorn")
+walk   = require("acorn/util/walk")
 recast = require("recast")
 
 valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
-module.exports = parseRequireDefinitions = (file, callback) ->
+module.exports = parseRequireDefinitions = (config, file, callback) ->
 
-  ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : true)
+  ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : config.sourceMap)
   file.ast = ast
 
   definitions = []
-  walk.simple(ast, CallExpression : (node) ->
+  walk.ancestor(ast, CallExpression : (node, state) ->
 
     if node.callee.name == "define"
       
@@ -35,14 +35,23 @@ module.exports = parseRequireDefinitions = (file, callback) ->
         node : node
       )
 
+      isInsideDefine = true
+
 
     if node.callee.name == "require" and node.arguments.length > 0 and node.arguments[0].type == "ArrayExpression"
-      definitions.push(
-        method : "require"
-        moduleName : undefined
-        deps : valuesFromArrayExpression(node.arguments[0])
-        node : node
+      
+      defineAncestors = _.any(
+        state.slice(0, -1)
+        (ancestorNode) -> ancestorNode.type == "CallExpression" and (ancestorNode.callee.name == "define" or ancestorNode.callee.name == "require")
       )
+      console.log(defineAncestors)
+      if config.findNestedDependencies or not defineAncestors
+        definitions.push(
+          method : "require"
+          moduleName : undefined
+          deps : valuesFromArrayExpression(node.arguments[0])
+          node : node
+        )
 
   )
 
