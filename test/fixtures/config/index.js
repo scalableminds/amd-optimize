@@ -1,5 +1,5 @@
 (function () {
-  define(["no_amd"], function (test) {
+  define(["foo"], function (test) {
     console.log(test);
   });
 })();

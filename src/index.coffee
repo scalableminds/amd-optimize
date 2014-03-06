@@ -86,7 +86,7 @@ readConfig = (configFileStream, config = {}, callback) ->
   configFileStream
     .on("data", (file) ->
 
-      console.log(file)
+      # console.log(file)
 
       config = _.merge(
         {}
@@ -107,6 +107,8 @@ readConfig = (configFileStream, config = {}, callback) ->
     ).on("error", (err) ->
       callback(err)
     )
+
+  configFileStream.resume()
   return
 
 
@@ -121,14 +123,18 @@ module.exports = rjs = (moduleName, options = {}) ->
       # exclude : []
       findNestedDependencies : false
       # wrapShim : true
-      loader : (name, callback) -> callback(null, _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))); return
+      loader : (name, callback) -> 
+        callback(null, _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js")))
+        return
     }
   )
 
   if _.isString(options.configFile) or _.isArray(options.configFile)
     options.configFile = vinylFs.src(options.configFile)
 
+
   configStream = through.obj()
+  configStream.pause()
   if options.configFile
     options.configFile.pipe(configStream)
 
