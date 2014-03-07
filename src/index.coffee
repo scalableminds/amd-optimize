@@ -11,12 +11,6 @@ trace        = require("./trace")
 exportModule = require("./export")
 
 
-logger = ->
-  return through.obj((file, enc, callback) ->
-    console.log(">>", path.relative(process.cwd(), file.path))
-    callback(null, file)
-  )
-
 
 firstChunk = (stream, callback) ->
 
@@ -40,25 +34,8 @@ firstChunk = (stream, callback) ->
   return
 
 
-
-printTree = (currentModule, prefix = "") ->
-
-  console.log(prefix, currentModule.name, "(#{path.relative(process.cwd(), currentModule.fileName)})")
-
-  depPrefix = prefix
-    .replace("├", "|")
-    .replace("└", " ")
-    .replace(/─/g, " ")
-  currentModule.deps.forEach((depModule, i) ->
-
-    if i + 1 < currentModule.deps.length
-      printTree(depModule, "#{depPrefix} ├──")
-    else
-      printTree(depModule, "#{depPrefix} └──")
-  )
-
-
 collectModules = (module, omitInline = true) ->
+# Depth-first search over the module dependency tree
 
   outputBuffer = []
 
@@ -80,12 +57,10 @@ collectModules = (module, omitInline = true) ->
   return outputStream
 
 
-readConfig = (configFileStream, config = {}, callback) ->
+readConfigStream = (config = {}) ->
 
-  configFileStream
-    .on("data", (file) ->
-
-      # console.log(file)
+  return through.obj(
+    (file, enc, done) ->
 
       config = _.merge(
         {}
@@ -100,42 +75,52 @@ readConfig = (configFileStream, config = {}, callback) ->
           """)()
         config
       )
+      done()
 
-    ).on("end", ->
-      callback(null, config)
-    ).on("error", (err) ->
-      callback(err)
-    )
+    (done) ->
 
-  configFileStream.resume()
-  return
+      @push(config)
+      done()
+  )
+
+
+defaultLoader = (fileBuffer, options) ->
+
+  return (name, callback) ->
+
+    if file = _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))
+      callback(null, file)
+    else if options.loader
+      options.loader(name, callback)
+    else
+      module.exports.loader()(path.join(options.baseUrl, name + ".js"), callback)
+
 
 
 module.exports = rjs = (moduleName, options = {}) ->
-
-  fileBuffer = []
 
   options = _.defaults(
     options, {
       baseUrl : ""
       configFile : null
       # exclude : []
+      # include : []
       findNestedDependencies : false
       # wrapShim : true
-      loader : (name, callback) -> 
-        callback(null, _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js")))
-        return
+      loader : null
     }
   )
 
   if _.isString(options.configFile) or _.isArray(options.configFile)
     options.configFile = vinylFs.src(options.configFile)
 
-
-  configStream = through.obj()
-  configStream.pause()
+  configStream = readConfigStream(options)
   if options.configFile
-    options.configFile.pipe(configStream)
+    configStream = options.configFile.pipe(configStream)
+  else
+    configStream.end()
+
+  fileBuffer = []
 
   return through.obj(
     # transform
@@ -151,14 +136,14 @@ module.exports = rjs = (moduleName, options = {}) ->
       async.waterfall([
 
         (callback) -> 
-          if options.configFile
-            readConfig(configStream, options, callback)
-          else
-            callback(null, options)
+          
+          configStream
+            .on("data", (config) -> callback(null, config))
+          
 
         (config, callback) ->
 
-          trace(moduleName, config, null, options.loader, callback)
+          trace(moduleName, config, null, defaultLoader(fileBuffer, options), callback)
 
         (module) -> 
           # printTree(module)
@@ -176,19 +161,27 @@ module.exports = rjs = (moduleName, options = {}) ->
   )
 
 
+module.exports.src = (moduleName, options) ->
+
+  source = rjs(moduleName, options)
+  process.nextTick -> source.end()
+  return source
+
+
 module.exports.loader = (filenameResolver, pipe) ->
 
   (moduleName, callback) ->
 
     # console.log(filenameResolver(moduleName))
-    source = vinylFs.src(filenameResolver(moduleName)).pipe(through.obj())
+    if filenameResolver
+      filename = filenameResolver(moduleName)
+    else
+      filename = moduleName
+
+    source = vinylFs.src(filename).pipe(through.obj())
 
     if pipe
       source = source.pipe(pipe())
 
-    settled = false
     firstChunk(source, callback)
     return
-
-
-module.exports.printModuleTree = printTree

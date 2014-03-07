@@ -1,11 +1,14 @@
 _       = require("lodash")
 assert  = require("assert")
+path    = require("path")
 vinylfs = require("vinyl-fs")
 coffee  = require("gulp-coffee")
 acorn   = require("acorn")
 walk    = require("acorn/util/walk")
 
 rjs     = require("../src/index")
+
+dir = path.relative(process.cwd(), __dirname)
 
 
 checkExpectedFiles = (expectedFiles, stream, done) ->
@@ -26,7 +29,7 @@ describe "core", ->
 
     checkExpectedFiles(
       ["foo.js", "index.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs("index"))
       done
     )
@@ -36,7 +39,7 @@ describe "core", ->
 
     checkExpectedFiles(
       ["foo.js", "relative.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs("relative"))
       done
     )
@@ -47,7 +50,7 @@ describe "core", ->
     expectedFiles = ["foo.js", "bar.js", "inline.js"]
 
     counter = 0
-    vinylfs.src("#{__dirname}/fixtures/core/*.js")
+    vinylfs.src("#{dir}/fixtures/core/*.js")
       .pipe(rjs("inline"))
       .on("data", (file) ->
         if counter < 2
@@ -61,41 +64,12 @@ describe "core", ->
         done()
       )
 
-
-  it "should work with a file loader", (done) ->
-
-    checkExpectedFiles(
-      ["foo.js", "index.js"]
-      source = rjs(
-        "index"
-        loader : rjs.loader((name) -> "#{__dirname}/fixtures/core/#{name}.js")
-      )
-      done
-    )
-    source.end()
-
-  it "should work with a file loader with a pipe", (done) ->
-
-    checkExpectedFiles(
-      ["foo.js", "index.js"]
-      source = rjs(
-        "index"
-        loader : rjs.loader(
-          (name) -> "#{__dirname}/fixtures/core/#{name}.coffee"
-          -> coffee()
-        )
-      )
-      done
-    )
-    source.end()
-
-
   it "should work with `paths` config", (done) ->
 
     checkExpectedFiles(
       ["bar.js", "index.js"]
 
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs(
           "index"
           paths : {
@@ -107,40 +81,97 @@ describe "core", ->
     )
 
 
-  it "should work with `map` config"#, (done) ->
+  it "should work with `map` config", (done) ->
 
-  #   expectedFiles = ["bar.js", "index.js"]
+    checkExpectedFiles(
+      ["bar.js", "index.js"]
 
-  #   vinylfs.src("#{__dirname}/fixtures/core/*.js")
-  #     .pipe(rjs(
-  #       "index"
-  #       map : {
-  #         index : {
-  #           foo : "bar"
-  #         }
-  #       }
-  #     ))
-  #     .on("data", (file) ->
-  #       assert.equal(expectedFiles.shift(), file.relative)
-  #     )
-  #     .on("end", done)
+      vinylfs.src("#{dir}/fixtures/core/*.js")
+        .pipe(rjs(
+          "index"
+          map : {
+            index : {
+              foo : "bar"
+            }
+          }
+        ))
+
+      done
+    )
 
 
   it "should trace CommonJS-style module definitions"
 
+
+describe "src", ->
+
+  it "should work with a default file loader", (done) ->
+
+    checkExpectedFiles(
+      ["foo.js", "index.js"]
+      rjs.src(
+        "index"
+        baseUrl : "test/fixtures/core"
+      )
+      done
+    )
+
+
+  it "should work with a custom file loader", (done) ->
+
+    checkExpectedFiles(
+      ["foo.js", "index.js"]
+      rjs.src(
+        "index"
+        loader : rjs.loader((name) -> "#{dir}/fixtures/core/#{name}.js")
+      )
+      done
+    )
+
+
+  it "should work with a custom file loader with a pipe", (done) ->
+
+    checkExpectedFiles(
+      ["foo.js", "index.js"]
+      rjs.src(
+        "index"
+        loader : rjs.loader(
+          (name) -> "#{dir}/fixtures/core/#{name}.coffee"
+          -> coffee()
+        )
+      )
+      done
+    )
+
+  it "should look for files, if not piped in", (done) ->
+
+    checkExpectedFiles(
+      ["foo.js", "index.js"]
+      vinylfs.src("#{dir}/fixtures/core/index.js")
+        .pipe(rjs(
+          "index"
+          baseUrl : "#{dir}/fixtures/core"
+        ))
+      done
+    )
+
+
+describe "include + exclude", ->
+
   it "should exclude modules and their dependency tree"
-  
+
   it "should shallowly exclude modules"
 
-  it "should start searching for files, if no input but an output pipe"
+  it "should include modules even if they had been excluded"
 
+  it "should include other modules"
 
 
 describe "shim", ->
 
   it "should add a `define` for non-AMD modules", (done) ->
 
-    vinylfs.src("#{__dirname}/fixtures/shim/*.js")
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
       .pipe(rjs(
         "index"
       ))
@@ -154,7 +185,7 @@ describe "shim", ->
 
   it "should add shimmed dependencies `define` for non-AMD modules", (done) ->
 
-    vinylfs.src("#{__dirname}/fixtures/shim/*.js")
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
       .pipe(rjs(
         "index"
         shim : {
@@ -175,7 +206,7 @@ describe "shim", ->
 
     exportVariable = "test"
 
-    vinylfs.src("#{__dirname}/fixtures/shim/*.js")
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
       .pipe(rjs(
         "index"
         shim : {
@@ -199,7 +230,7 @@ describe "shim", ->
               funcNode = _.last(node.arguments)
               assert.equal(funcNode.type, "FunctionExpression")
 
-              returnNode = funcNode.body.body[0]
+              returnNode = _.last(funcNode.body.body)
               assert.equal(returnNode.type, "ReturnStatement")
 
               assert.equal(returnNode.argument.type, "Identifier")
@@ -210,7 +241,54 @@ describe "shim", ->
       )
       .on("end", done)
 
-  it "should wrap non-AMD modules with a `define` call"
+  it "should wrap non-AMD modules with a `define` call", (done) ->
+
+    exportVariable = "test"
+
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
+      .pipe(rjs(
+        "no_amd"
+        wrapShim : true
+        shim : {
+          no_amd : {
+            exports : exportVariable
+          }
+        }
+      ))
+      .on("data", (file) ->
+        if file.relative == "no_amd.js"
+          stringContents = file.contents.toString("utf8")
+          ast = acorn.parse(stringContents)
+
+          assert.equal(ast.body[0].expression.type, "CallExpression")
+          assert.equal(ast.body[0].expression.callee.name, "define")
+      )
+      .on("end", done)
+
+
+  it "should wrap shimmed AMD modules with an immediately invoked function", (done) ->
+
+    exportVariable = "test"
+
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
+      .pipe(rjs(
+        "amd"
+        wrapShim : true
+        shim : {
+          amd : {}
+        }
+      ))
+      .on("data", (file) ->
+
+        if file.relative == "amd.js"
+          stringContents = file.contents.toString("utf8")
+          ast = acorn.parse(stringContents)
+
+          assert.equal(ast.body[0].expression.type, "CallExpression")
+          assert.equal(ast.body[0].expression.callee.name, undefined)
+          assert.equal(ast.body.length, 1)
+      )
+      .on("end", done)
 
 
 describe "nested dependencies", ->
@@ -219,7 +297,7 @@ describe "nested dependencies", ->
 
     checkExpectedFiles(
       ["foo.js", "nested.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs("nested"))
       done
     )
@@ -230,7 +308,7 @@ describe "nested dependencies", ->
     checkExpectedFiles(
       ["bar.js", "foo.js", "nested.js"]
 
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs(
           "nested"
           findNestedDependencies : true
@@ -246,10 +324,10 @@ describe "config file", ->
 
     checkExpectedFiles(
       ["index.js"]
-      vinylfs.src("#{__dirname}/fixtures/config/index.js")
+      vinylfs.src("#{dir}/fixtures/config/index.js")
         .pipe(rjs(
           "index"
-          configFile : "#{__dirname}/fixtures/config/config.js"
+          configFile : "#{dir}/fixtures/config/config.js"
         ))
       done
     )
@@ -259,16 +337,14 @@ describe "config file", ->
 
     checkExpectedFiles(
       ["index.js"]
-      vinylfs.src("#{__dirname}/fixtures/config/index.js")
+      vinylfs.src("#{dir}/fixtures/config/index.js")
         .pipe(rjs(
           "index"
-          configFile : vinylfs.src("#{__dirname}/fixtures/config/config.js")
+          configFile : vinylfs.src("#{dir}/fixtures/config/config.js")
         ))
       done
     )
 
-
-  it "should read from config object"
 
 
 describe "special paths", ->
@@ -277,7 +353,7 @@ describe "special paths", ->
 
     checkExpectedFiles(
       ["bar.js", "plugin.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs("plugin"))
       done
     )
@@ -287,7 +363,7 @@ describe "special paths", ->
 
     checkExpectedFiles(
       ["index.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/index.js")
+      vinylfs.src("#{dir}/fixtures/core/index.js")
         .pipe(rjs(
           "index"
           paths : {
@@ -302,7 +378,7 @@ describe "special paths", ->
 
     checkExpectedFiles(
       ["bar.js", "require_exports.js"]
-      vinylfs.src("#{__dirname}/fixtures/core/*.js")
+      vinylfs.src("#{dir}/fixtures/core/*.js")
         .pipe(rjs("require_exports"))
       done
     )

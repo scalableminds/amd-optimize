@@ -10,6 +10,7 @@ parse     = require("./parse")
 class Module
   constructor : (@name, @file, @deps = []) -> 
     @isShallow = false
+    @isShimmed = false
     @isAnonymous = false
     @isInline = false
     @hasDefine = false
@@ -22,9 +23,12 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
   resolveModuleName = (moduleName, relativeTo = "") ->
 
     if moduleName[0] == "."
-      return path.join(path.dirname(relativeTo), moduleName)
-    else
-      return moduleName
+      moduleName = path.join(path.dirname(relativeTo), moduleName)
+    
+    if config.map and config.map[relativeTo] and config.map[relativeTo][moduleName]
+      moduleName = config.map[relativeTo][moduleName]
+
+    return moduleName
 
 
   resolveModuleFileName = (moduleName) ->
@@ -87,6 +91,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
         fileLoader(fileName, callback)
 
       (file, callback) ->
+
+        if arguments.length == 1
+          callback = file
+          file = null
 
         if file
           callback(null, file)
@@ -152,6 +160,8 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
               if module.hasDefine
                 console.log("[warn]", "Module '#{module.name}' is shimmed even though it has a proper define.")
+
+              module.isShimmed = true
           
               if shim.exports
                 module.exports = shim.exports

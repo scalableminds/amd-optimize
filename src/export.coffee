@@ -20,29 +20,40 @@ module.exports = fixModule = (options = {}) ->
 
     if not module.hasDefine
       
-      ast.body.push(
-        b.expressionStatement(
-          b.callExpression(
-            b.identifier("define")
-            [
-              b.literal(module.name)
-              b.arrayExpression(module.deps.map( (dep) -> b.literal(dep.name) ))
-              b.functionExpression(
-                null
-                []
-                b.blockStatement([
-                  b.returnStatement(
-                    if module.exports
-                      b.identifier(module.exports)
-                    else
-                      null
-                  )
-                ])
-              )
-            ]
-          )
-        )
+      defineReturnStatement = b.returnStatement(
+        if module.exports
+          b.identifier(module.exports)
+        else
+          null
       )
+
+      if options.wrapShim
+        defineBody = ast.body.concat([defineReturnStatement])
+      else
+        defineBody = [defineReturnStatement]
+
+      defineCall = b.callExpression(
+        b.identifier("define")
+        [
+          b.literal(module.name)
+          b.arrayExpression(module.deps.map( (dep) -> b.literal(dep.name) ))
+          b.functionExpression(
+            null
+            []
+            b.blockStatement(defineBody)
+          )
+        ]
+      )
+
+      if options.wrapShim
+        ast.body = [b.expressionStatement(
+          defineCall
+        )]
+
+      else
+        ast.body.push(
+          b.expressionStatement(defineCall)
+        )
     
     else if module.isAnonymous
 
@@ -55,6 +66,24 @@ module.exports = fixModule = (options = {}) ->
             _.last(astNode.arguments)
           ]
       )
+
+    if module.hasDefine and module.isShimmed
+      ast.body = [b.expressionStatement(
+        b.callExpression(
+          b.memberExpression(
+            b.functionExpression(
+              null
+              []
+              b.blockStatement(
+                ast.body
+              )
+            )
+            b.identifier("call")
+            false
+          )
+          [b.thisExpression()]
+        )
+      )]
 
     # TODO: Handle shimmed, mapped and relative deps
 
