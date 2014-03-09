@@ -20,7 +20,7 @@ gulp.task("compile", function (){
 });
 
 
-gulp.task("test", function () {
+gulp.task("test", ["compile"], function () {
   return gulp.src("test/*_test.coffee")
     .pipe(mocha({ reporter : "spec" }));
 });

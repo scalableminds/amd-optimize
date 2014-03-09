@@ -6,7 +6,7 @@ coffee  = require("gulp-coffee")
 acorn   = require("acorn")
 walk    = require("acorn/util/walk")
 
-rjs     = require("../src/index")
+rjs     = require("../lib/index")
 
 dir = path.relative(process.cwd(), __dirname)
 
