@@ -1,6 +1,6 @@
-# rjs-optimizer [![Build Status](https://drone.io/github.com/scalableminds/rjs-optimizer/status.png)](https://drone.io/github.com/scalableminds/rjs-optimizer/latest)
+# amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/rjs-optimizer/status.png)](https://drone.io/github.com/scalableminds/rjs-optimizer/latest)
 
-> An AMD ([RequireJS](http://requirejs.org/)) optimizer that's stream-friendly. Made for [gulp](http://gulpjs.com/).
+> An AMD ([RequireJS](http://requirejs.org/)) optimizer that's stream-friendly. Made for [gulp](http://gulpjs.com/). (WIP)
 
 # Features
 
@@ -9,7 +9,7 @@
 * Support for precompilation of source files (ie. CoffeeScript)
 * Wraps non-AMD dependencies
 * Supply a custom loader for on-demand loading
-* Leaves concatenation and minification to your preferred modules
+* Leaves concatenation and minification to your preferred choice of modules
 
 
 # Motivation
@@ -19,18 +19,16 @@ This aims to be an alternative to the powerful [r.js](https://github.com/jrburke
 
 ```js
 var gulp = require("gulp");
-var rjs = require("rjs-optimizer");
+var amdOptimize = require("amd-optimize");
  
 
 // Main module. With CoffeeScript precompilation, concatenation and minifiying.
 gulp.task("scripts:index", function () {
   
-  return gulp.src("src/scripts/**/*.{js,coffee}")
-    .pipe(gif(coffee(), function (file) { return path.extname(file.path) == ".coffee"; } ))
+  return gulp.src("src/scripts/**/*.js")
     // Traces all modules and outputs them in the correct order.
-    .pipe(rjs("index"))
+    .pipe(amdOptimize("index"))
     .pipe(concat("index.js"))
-    .pipe(uglify())
     .pipe(gulp.dest("dist/scripts"));
 
 });
@@ -48,13 +46,118 @@ $ npm install rjs-optimizer
 
 ### rjs(moduleName, [options])
 
+#### moduleName
+Type: `String`
+
+#### options.paths
+
+```js
+paths : {
+  "backbone" : "../bower_components/backbone/backbone",
+  "jquery" : "../bower_components/jquery/jquery"}
+```
+
+#### options.map
+
+```js
+map : {
+  // Replace underscore with lodash for the backbone module
+  "backbone" : {
+    "underscore" : "lodash"  }}
+```
+
+#### options.shim
+	
+```js
+shim : {
+  // Shimmed export. Specify the variable name that is being exported.
+  "three" : {
+  	 exports : "THREE"  },
+
+  // Shimmed dependecies and export
+  "three.color" : {
+  	 deps : ["three"],
+  	 exports : "THREE.ColorConverter"  },
+ 
+  // Shimmed dependencies
+  "bootstrap" : ["jquery"]}
+```
+
 #### options.configFile
-#### options.wrapFile
+Type: `Stream` or `String`
+
+Supply a filepath (can be a glob) or a gulp stream to your config file that lists all your paths, shims and maps.
+
+```js
+amdOptimize.src("index", {
+	configFile : "src/scripts/require_config.js"});
+
+amdOptimize.src("index", {
+	configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee())
+});
+```  
+
 #### options.findNestedDependencies
+Type: `Boolean`
+Default: `false`
+
+
+If `true` it will trace `require()` dependencies inside of top-level `require()` or `define()` calls. Usually, these nested dependencies are considered dynamic or runtime calls, so it's disabled by default.
+
+Would trace both `router` and `controllers/home`:
+
+```js
+define("router", [], function () {
+  return {
+    "/home" : function () {
+      require(["controllers/home"]);    },
+    ...  }})
+```
+
 #### options.baseUrl
 #### options.exclude
+#### options.include
+
 #### options.wrapShim
+
+Type: `Boolean`
+Default: `false`
+
+If `true` all files that you have declared a shim for and don't have a proper `define()` call will be wrapped in a `define()` call.
+
+
+
+```js
+// Original
+var test = "Test";
+
+// Output
+define("test", [], function () {
+  var test = "Test";
+  return test;});
+
+// Shim config
+{  shim : {
+    test : {
+      exports : "test"    }
+  }}
+```
+
 #### options.loader
+WIP. Subject to change.
+
+```js
+amdOptimize.src(
+  "index",
+  loader : amdOptimize.loader(
+    // Used for turning a moduleName into a filepath glob.
+    function (moduleName) { return "src/scripts/" + moduleName + ".coffee" },
+    // Returns a transform stream.
+    function () { return coffee(); }
+  )
+)
+```
+
 
 
 ## Recommended modules
@@ -64,7 +167,7 @@ $ npm install rjs-optimizer
 var concat = require("gulp-concat");
 
 gulp.src("src/scripts/**/*.js")
-  .pipe(rjs("index"))
+  .pipe(amdOptimize("index"))
   .pipe(concat("index"))
   .pipe(gulp.dest("dist"));
 ```
@@ -76,7 +179,7 @@ gulp.src("src/scripts/**/*.js")
 var uglify = require("gulp-uglify");
 
 gulp.src("src/scripts/**/*.js")
-  .pipe(rjs("index"))
+  .pipe(amdOptimize("index"))
   .pipe(concat("index"))
   .pipe(uglify())
   .pipe(gulp.dest("dist"));
@@ -90,7 +193,7 @@ var coffee = require("gulp-coffee");
 
 gulp.src("src/scripts/**/*.coffee")
   .pipe(coffee())
-  .pipe(rjs("index"))
+  .pipe(amdOptimize("index"))
   .pipe(concat("index"))
   .pipe(gulp.dest("dist"));
 ```
@@ -103,7 +206,7 @@ var gif = require("gulp-if");
 
 gulp.src("src/scripts/**/*.{coffee,js}")
   .pipe(gif(function (file) { return path.extname(file) == ".coffee"; }, coffee()))
-  .pipe(rjs("index"))
+  .pipe(amdOptimize("index"))
   .pipe(concat("index"))
   .pipe(gulp.dest("dist"));
 ```
