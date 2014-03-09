@@ -11,11 +11,7 @@
 * Supply a custom loader for on-demand loading
 * Leaves concatenation and minification to your preferred choice of modules
 
-
-# Motivation
-This aims to be an alternative to the powerful [r.js](https://github.com/jrburke/r.js) optimizer, but made for a streaming environment like [gulp](http://gulpjs.com/). This implementation doesn't operate on the file system directly. So, there's no need for complicated setups when dealing with precompiled files. Also, this module only focuses on tracing modules and does not intend replace a full-fletched build system. Therefore, there are a lot of use cases where r.js is probably a better fit.
-
-# Examples
+# Example
 
 ```js
 var gulp = require("gulp");
@@ -27,12 +23,15 @@ gulp.task("scripts:index", function () {
   
   return gulp.src("src/scripts/**/*.js")
     // Traces all modules and outputs them in the correct order.
-    .pipe(amdOptimize("index"))
+    .pipe(amdOptimize("main"))
     .pipe(concat("index.js"))
     .pipe(gulp.dest("dist/scripts"));
 
 });
 ```
+
+# Motivation
+This aims to be an alternative to the powerful [r.js](https://github.com/jrburke/r.js) optimizer, but made for a streaming environment like [gulp](http://gulpjs.com/). This implementation doesn't operate on the file system directly. So, there's no need for complicated setups when dealing with precompiled files. Also, this module only focuses on tracing modules and does not intend replace a full-fletched build system. Therefore, there are a lot of use cases where r.js is probably a better fit.
 
 
 # Installation
@@ -44,7 +43,7 @@ $ npm install rjs-optimizer
 
 ## API
 
-### rjs(moduleName, [options])
+### amdOptimize(moduleName, [options])
 
 #### moduleName
 Type: `String`
@@ -137,10 +136,10 @@ define("test", [], function () {
   return test;});
 
 // Shim config
-{  shim : {
-    test : {
-      exports : "test"    }
-  }}
+shim : {
+  test : {
+    exports : "test"  }
+}
 ```
 
 #### options.loader
@@ -158,6 +157,18 @@ amdOptimize.src(
 )
 ```
 
+### amdOptimize.src(moduleName, options)
+Same as `amdOptimize()`, but won't accept an input stream. Instead it will rely on loading the files by itself.
+
+
+## Algorithms
+### Resolving paths
+
+### Finding files
+1. Check the input stream.
+2. Look for files with the default loader and `baseUrl`.
+3. Look for files with the custom loader and its transform streams.
+4. Give up.
 
 
 ## Recommended modules
@@ -168,7 +179,7 @@ var concat = require("gulp-concat");
 
 gulp.src("src/scripts/**/*.js")
   .pipe(amdOptimize("index"))
-  .pipe(concat("index"))
+  .pipe(concat("index.js"))
   .pipe(gulp.dest("dist"));
 ```
 
@@ -180,7 +191,7 @@ var uglify = require("gulp-uglify");
 
 gulp.src("src/scripts/**/*.js")
   .pipe(amdOptimize("index"))
-  .pipe(concat("index"))
+  .pipe(concat("index.js"))
   .pipe(uglify())
   .pipe(gulp.dest("dist"));
 ```
@@ -194,7 +205,7 @@ var coffee = require("gulp-coffee");
 gulp.src("src/scripts/**/*.coffee")
   .pipe(coffee())
   .pipe(amdOptimize("index"))
-  .pipe(concat("index"))
+  .pipe(concat("index.js"))
   .pipe(gulp.dest("dist"));
 ```
 
@@ -207,10 +218,26 @@ var gif = require("gulp-if");
 gulp.src("src/scripts/**/*.{coffee,js}")
   .pipe(gif(function (file) { return path.extname(file) == ".coffee"; }, coffee()))
   .pipe(amdOptimize("index"))
-  .pipe(concat("index"))
+  .pipe(concat("index.js"))
   .pipe(gulp.dest("dist"));
 ```
 
+* [event-stream](https://www.npmjs.org/package/event-stream/), [gulp-order](https://www.npmjs.org/package/gulp-order): Add files before or after
+
+```js
+var eventStream = require("event-stream");
+var order = require("gulp-order");
+
+eventStream.merge(
+	gulp.src("bower_components/almond/almond.js"),
+	gulp.src(amdOptimize("index"))
+		.pipe(concat("index.js"))
+)
+	.pipe(order(["**/almond.js", "**/index.js"]))
+	.pipe(concat("index.js"))
+	.pipe(gulp.dest("dist"));
+
+```
 
 ## Current limitations
 * No sourcemaps.
