@@ -23,6 +23,18 @@ checkExpectedFiles = (expectedFiles, stream, done) ->
       done()
     )
 
+checkAst = (expectedFile, stream, tester, done) ->
+
+  stream
+    .on("data", (file) ->
+      if file.relative == path.basename(expectedFile)
+        stringContents = file.contents.toString("utf8")
+        ast = acorn.parse(stringContents)
+        tester(ast, stringContents)
+    )
+    .on("end", done)
+
+
 describe "core", ->
 
   it "should work without configuration", (done) ->
@@ -287,6 +299,26 @@ describe "shim", ->
           assert.equal(ast.body[0].expression.type, "CallExpression")
           assert.equal(ast.body[0].expression.callee.name, undefined)
           assert.equal(ast.body.length, 1)
+      )
+      .on("end", done)
+
+
+  it "should not wrap non-shimmed modules", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/shim/*.js")
+      .pipe(rjs(
+        "no_shim"
+        wrapShim : true
+      ))
+      .on("data", (file) ->
+
+        if file.relative == "no_shim.js"
+          stringContents = file.contents.toString("utf8")
+          ast = acorn.parse(stringContents)
+
+          if ast.body[0].expression.type == "CallExpression"
+            if ast.body[0].expression.callee.name == "define"
+              assert.notEqual(ast.body[0].expression.arguments[0].value, "no_shim")
       )
       .on("end", done)
 

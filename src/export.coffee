@@ -27,7 +27,7 @@ module.exports = fixModule = (options = {}) ->
           null
       )
 
-      if options.wrapShim
+      if options.wrapShim and module.isShimmed
         defineBody = ast.body.concat([defineReturnStatement])
       else
         defineBody = [defineReturnStatement]
@@ -45,7 +45,7 @@ module.exports = fixModule = (options = {}) ->
         ]
       )
 
-      if options.wrapShim
+      if options.wrapShim and module.isShimmed
         ast.body = [b.expressionStatement(
           defineCall
         )]
