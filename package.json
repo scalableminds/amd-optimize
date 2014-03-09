@@ -1,14 +1,14 @@
 {
   "name": "amd-optimize",
   "version": "0.0.1",
-  "description": "An alternative to the r.js optimizer that's stream-friendly. Made for gulp.",
+  "description": "An AMD (i.e. RequireJS) optimizer that's stream-friendly. Made for gulp. (WIP)",
   "main": "lib/index.js",
   "scripts": {
     "test": "gulp test"
   },
   "repository": {
     "type": "git",
-    "url": " "
+    "url": ""
   },
   "keywords": [
     "gulpplugin",

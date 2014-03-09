@@ -112,7 +112,7 @@ gulp.src("src/scripts/**/*.{coffee,js}")
 ## Current limitations
 * No sourcemaps.
 * No RequireJS plugins.
-* No `map` configuration.
+* No `exclude` or `include` configuration.
 * No hybrid AMD-CommonJS module definitions.
 
 ## Tests
