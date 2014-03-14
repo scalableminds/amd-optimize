@@ -31,13 +31,13 @@ gulp.task("scripts:index", function () {
 ```
 
 # Motivation
-This aims to be an alternative to the powerful [r.js](https://github.com/jrburke/r.js) optimizer, but made for a streaming environment like [gulp](http://gulpjs.com/). This implementation doesn't operate on the file system directly. So, there's no need for complicated setups when dealing with precompiled files. Also, this module only focuses on tracing modules and does not intend replace a full-fletched build system. Therefore, there are a lot of use cases where r.js is probably a better fit.
+This aims to be an alternative to the powerful [r.js](https://github.com/jrburke/r.js) optimizer, but made for a streaming environment like [gulp](http://gulpjs.com/). This implementation doesn't operate on the file system directly. So, there's no need for complicated setups when dealing with precompiled files. Also, this module only focuses on tracing modules and does not intend replace a full-fletched build system. Therefore, there might be tons of use cases where r.js is a better fit.
 
 
 # Installation
 
 ```bash
-$ npm install rjs-optimizer
+$ npm install amd-optimize
 ```
 
 
