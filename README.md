@@ -129,7 +129,7 @@ define("router", [], function () {
 
 #### options.wrapShim
 
-Type: `Boolean`
+Type: `Boolean`  
 Default: `false`
 
 If `true` all files that you have declared a shim for and don't have a proper `define()` call will be wrapped in a `define()` call.
