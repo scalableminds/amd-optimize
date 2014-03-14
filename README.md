@@ -74,13 +74,13 @@ map : {
 shim : {
   // Shimmed export. Specify the variable name that is being exported.
   "three" : {
-  	 exports : "THREE"
+     exports : "THREE"
   },
 
   // Shimmed dependecies and export
   "three.color" : {
-  	 deps : ["three"],
-  	 exports : "THREE.ColorConverter"
+     deps : ["three"],
+     exports : "THREE.ColorConverter"
   },
 
   // Shimmed dependencies
@@ -95,16 +95,16 @@ Supply a filepath (can be a glob) or a gulp stream to your config file that list
 
 ```js
 amdOptimize.src("index", {
-	configFile : "src/scripts/require_config.js"
+  configFile : "src/scripts/require_config.js"
 });
 
 amdOptimize.src("index", {
-	configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee())
+  configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee())
 });
 ```
 
 #### options.findNestedDependencies
-Type: `Boolean`
+Type: `Boolean`  
 Default: `false`
 
 
@@ -241,13 +241,13 @@ var eventStream = require("event-stream");
 var order = require("gulp-order");
 
 eventStream.merge(
-	gulp.src("bower_components/almond/almond.js"),
-	gulp.src(amdOptimize("index"))
-		.pipe(concat("index.js"))
+  gulp.src("bower_components/almond/almond.js"),
+  gulp.src(amdOptimize("index"))
+    .pipe(concat("index.js"))
 )
-	.pipe(order(["**/almond.js", "**/index.js"]))
-	.pipe(concat("index.js"))
-	.pipe(gulp.dest("dist"));
+  .pipe(order(["**/almond.js", "**/index.js"]))
+  .pipe(concat("index.js"))
+  .pipe(gulp.dest("dist"));
 
 ```
 
