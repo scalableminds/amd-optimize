@@ -252,10 +252,10 @@ eventStream.merge(
 ```
 
 ## Current limitations
-* No sourcemaps.
-* No RequireJS plugins.
-* No `exclude` or `include` configuration.
-* No hybrid AMD-CommonJS module definitions.
+* No [sourcemaps](http://requirejs.org/docs/optimization.html#sourcemaps).
+* No [RequireJS plugins](http://requirejs.org/docs/api.html#plugins).
+* No [`exclude` or `include` configuration](http://requirejs.org/docs/optimization.html#basics).
+* No [CommonJS module definitions](http://requirejs.org/docs/whyamd.html#sugar).
 
 ## Tests
 1. Install npm dev dependencies `npm install`
