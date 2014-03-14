@@ -1,4 +1,4 @@
-# amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/rjs-optimizer/status.png)](https://drone.io/github.com/scalableminds/rjs-optimizer/latest)
+# amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/amd-optimize/status.png)](https://drone.io/github.com/scalableminds/amd-optimize/latest)
 
 > An AMD ([RequireJS](http://requirejs.org/)) optimizer that's stream-friendly. Made for [gulp](http://gulpjs.com/). (WIP)
 
@@ -16,11 +16,11 @@
 ```js
 var gulp = require("gulp");
 var amdOptimize = require("amd-optimize");
- 
+
 
 // Main module. With CoffeeScript precompilation, concatenation and minifiying.
 gulp.task("scripts:index", function () {
-  
+
   return gulp.src("src/scripts/**/*.js")
     // Traces all modules and outputs them in the correct order.
     .pipe(amdOptimize("main"))
@@ -53,7 +53,8 @@ Type: `String`
 ```js
 paths : {
   "backbone" : "../bower_components/backbone/backbone",
-  "jquery" : "../bower_components/jquery/jquery"}
+  "jquery" : "../bower_components/jquery/jquery"
+}
 ```
 
 #### options.map
@@ -62,24 +63,29 @@ paths : {
 map : {
   // Replace underscore with lodash for the backbone module
   "backbone" : {
-    "underscore" : "lodash"  }}
+    "underscore" : "lodash"
+  }
+}
 ```
 
 #### options.shim
-	
+
 ```js
 shim : {
   // Shimmed export. Specify the variable name that is being exported.
   "three" : {
-  	 exports : "THREE"  },
+  	 exports : "THREE"
+  },
 
   // Shimmed dependecies and export
   "three.color" : {
   	 deps : ["three"],
-  	 exports : "THREE.ColorConverter"  },
- 
+  	 exports : "THREE.ColorConverter"
+  },
+
   // Shimmed dependencies
-  "bootstrap" : ["jquery"]}
+  "bootstrap" : ["jquery"]
+}
 ```
 
 #### options.configFile
@@ -89,12 +95,13 @@ Supply a filepath (can be a glob) or a gulp stream to your config file that list
 
 ```js
 amdOptimize.src("index", {
-	configFile : "src/scripts/require_config.js"});
+	configFile : "src/scripts/require_config.js"
+});
 
 amdOptimize.src("index", {
 	configFile : gulp.src("src/scripts/require_config.coffee").pipe(coffee())
 });
-```  
+```
 
 #### options.findNestedDependencies
 Type: `Boolean`
@@ -109,8 +116,11 @@ Would trace both `router` and `controllers/home`:
 define("router", [], function () {
   return {
     "/home" : function () {
-      require(["controllers/home"]);    },
-    ...  }})
+      require(["controllers/home"]);
+    },
+    ...
+  }
+})
 ```
 
 #### options.baseUrl
@@ -133,12 +143,14 @@ var test = "Test";
 // Output
 define("test", [], function () {
   var test = "Test";
-  return test;});
+  return test;
+});
 
 // Shim config
 shim : {
   test : {
-    exports : "test"  }
+    exports : "test"
+  }
 }
 ```
 
@@ -153,7 +165,7 @@ amdOptimize.src(
     function (moduleName) { return "src/scripts/" + moduleName + ".coffee" },
     // Returns a transform stream.
     function () { return coffee(); }
-  )
+  )
 )
 ```
 

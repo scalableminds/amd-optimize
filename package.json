@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git://github.com/scalableminds/amd-optimize.git"
   },
   "keywords": [
     "gulpplugin",
