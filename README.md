@@ -17,8 +17,6 @@
 var gulp = require("gulp");
 var amdOptimize = require("amd-optimize");
 
-
-// Main module. With CoffeeScript precompilation, concatenation and minifiying.
 gulp.task("scripts:index", function () {
 
   return gulp.src("src/scripts/**/*.js")
