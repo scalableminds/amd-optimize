@@ -1,12 +1,14 @@
-_       = require("lodash")
-assert  = require("assert")
-path    = require("path")
-vinylfs = require("vinyl-fs")
-coffee  = require("gulp-coffee")
-acorn   = require("acorn")
-walk    = require("acorn/util/walk")
+_           = require("lodash")
+assert      = require("assert")
+path        = require("path")
+util        = require("util")
+vinylfs     = require("vinyl-fs")
+coffee      = require("gulp-coffee")
+plumber     = require("gulp-plumber")
+acorn       = require("acorn")
+walk        = require("acorn/util/walk")
 
-rjs     = require("../lib/index")
+amdOptimize = require("../lib/index")
 
 dir = path.relative(process.cwd(), __dirname)
 
@@ -42,7 +44,7 @@ describe "core", ->
     checkExpectedFiles(
       ["foo.js", "index.js"]
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs("index"))
+        .pipe(amdOptimize("index"))
       done
     )
 
@@ -52,7 +54,7 @@ describe "core", ->
     checkExpectedFiles(
       ["foo.js", "relative.js"]
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs("relative"))
+        .pipe(amdOptimize("relative"))
       done
     )
 
@@ -63,7 +65,7 @@ describe "core", ->
 
     counter = 0
     vinylfs.src("#{dir}/fixtures/core/*.js")
-      .pipe(rjs("inline"))
+      .pipe(amdOptimize("inline"))
       .on("data", (file) ->
         if counter < 2
           assert(_.contains(expectedFiles[0..1], file.relative))
@@ -82,13 +84,13 @@ describe "core", ->
       ["bar.js", "index.js"]
 
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           paths : {
             foo : "bar"
           }
         ))
-      
+
       done
     )
 
@@ -99,7 +101,7 @@ describe "core", ->
       ["bar.js", "index.js"]
 
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           map : {
             index : {
@@ -121,7 +123,7 @@ describe "src", ->
 
     checkExpectedFiles(
       ["foo.js", "index.js"]
-      rjs.src(
+      amdOptimize.src(
         "index"
         baseUrl : "test/fixtures/core"
       )
@@ -133,9 +135,9 @@ describe "src", ->
 
     checkExpectedFiles(
       ["foo.js", "index.js"]
-      rjs.src(
+      amdOptimize.src(
         "index"
-        loader : rjs.loader((name) -> "#{dir}/fixtures/core/#{name}.js")
+        loader : amdOptimize.loader((name) -> "#{dir}/fixtures/core/#{name}.js")
       )
       done
     )
@@ -145,9 +147,9 @@ describe "src", ->
 
     checkExpectedFiles(
       ["foo.js", "index.js"]
-      rjs.src(
+      amdOptimize.src(
         "index"
-        loader : rjs.loader(
+        loader : amdOptimize.loader(
           (name) -> "#{dir}/fixtures/core/#{name}.coffee"
           -> coffee()
         )
@@ -160,7 +162,7 @@ describe "src", ->
     checkExpectedFiles(
       ["foo.js", "index.js"]
       vinylfs.src("#{dir}/fixtures/core/index.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           baseUrl : "#{dir}/fixtures/core"
         ))
@@ -184,7 +186,7 @@ describe "shim", ->
   it "should add a `define` for non-AMD modules", (done) ->
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "index"
       ))
       .on("data", (file) ->
@@ -198,7 +200,7 @@ describe "shim", ->
   it "should add shimmed dependencies `define` for non-AMD modules", (done) ->
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "index"
         shim : {
           no_amd : {
@@ -219,7 +221,7 @@ describe "shim", ->
     exportVariable = "test"
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "index"
         shim : {
           no_amd : {
@@ -258,7 +260,7 @@ describe "shim", ->
     exportVariable = "test"
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "no_amd"
         wrapShim : true
         shim : {
@@ -283,7 +285,7 @@ describe "shim", ->
     exportVariable = "test"
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "amd"
         wrapShim : true
         shim : {
@@ -306,7 +308,7 @@ describe "shim", ->
   it "should not wrap non-shimmed modules", (done) ->
 
     vinylfs.src("#{dir}/fixtures/shim/*.js")
-      .pipe(rjs(
+      .pipe(amdOptimize(
         "no_shim"
         wrapShim : true
       ))
@@ -330,7 +332,7 @@ describe "nested dependencies", ->
     checkExpectedFiles(
       ["foo.js", "nested.js"]
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs("nested"))
+        .pipe(amdOptimize("nested"))
       done
     )
 
@@ -341,7 +343,7 @@ describe "nested dependencies", ->
       ["bar.js", "foo.js", "nested.js"]
 
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "nested"
           findNestedDependencies : true
         ))
@@ -357,7 +359,7 @@ describe "config file", ->
     checkExpectedFiles(
       ["index.js"]
       vinylfs.src("#{dir}/fixtures/config/index.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           configFile : "#{dir}/fixtures/config/config.js"
         ))
@@ -370,7 +372,7 @@ describe "config file", ->
     checkExpectedFiles(
       ["index.js"]
       vinylfs.src("#{dir}/fixtures/config/index.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           configFile : vinylfs.src("#{dir}/fixtures/config/config.js")
         ))
@@ -386,7 +388,7 @@ describe "special paths", ->
     checkExpectedFiles(
       ["bar.js", "plugin.js"]
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs("plugin"))
+        .pipe(amdOptimize("plugin"))
       done
     )
 
@@ -396,7 +398,7 @@ describe "special paths", ->
     checkExpectedFiles(
       ["index.js"]
       vinylfs.src("#{dir}/fixtures/core/index.js")
-        .pipe(rjs(
+        .pipe(amdOptimize(
           "index"
           paths : {
             foo : "empty:"
@@ -406,12 +408,42 @@ describe "special paths", ->
     )
 
 
+  it "should apply prefix paths"
+
+
   it "should ignore `exports` and `require` dependencies", (done) ->
 
     checkExpectedFiles(
       ["bar.js", "require_exports.js"]
       vinylfs.src("#{dir}/fixtures/core/*.js")
-        .pipe(rjs("require_exports"))
+        .pipe(amdOptimize("require_exports"))
       done
+    )
+
+
+describe "errors", ->
+
+  it "should passthrough the errors of loader streams", (done) ->
+
+    amdOptimize.src(
+      "foo"
+      loader : amdOptimize.loader(
+        (name) -> "#{dir}/fixtures/errors/#{name}.coffee"
+        -> coffee()
+      )
+    ).on("error", (err) ->
+      assert.ok(util.isError(err))
+      done()
+    )
+
+  it "should throw a syntax error, when parsing goes wrong", (done) ->
+
+    amdOptimize.src(
+      "foo"
+      baseUrl : "test/fixtures/errors"
+    ).on("error", (err) ->
+      assert.ok(util.isError(err))
+      assert.equal("SyntaxError", err.name)
+      done()
     )
 

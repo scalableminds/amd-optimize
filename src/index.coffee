@@ -11,7 +11,6 @@ trace        = require("./trace")
 exportModule = require("./export")
 
 
-
 firstChunk = (stream, callback) ->
 
   settled = false
@@ -122,7 +121,7 @@ module.exports = rjs = (moduleName, options = {}) ->
 
   fileBuffer = []
 
-  return through.obj(
+  mainStream = through.obj(
     # transform
     (file, enc, done) ->
       fileBuffer.push(file)
@@ -135,17 +134,18 @@ module.exports = rjs = (moduleName, options = {}) ->
 
       async.waterfall([
 
-        (callback) -> 
-          
+        (callback) ->
+
           configStream
             .on("data", (config) -> callback(null, config))
-          
+            .on("error", callback)
+
 
         (config, callback) ->
 
           trace(moduleName, config, null, defaultLoader(fileBuffer, options), callback)
 
-        (module) -> 
+        (module, callback) ->
           # printTree(module)
 
           exportStream = exportModule(options)
@@ -154,11 +154,14 @@ module.exports = rjs = (moduleName, options = {}) ->
           )
           collectModules(module)
             .pipe(exportStream)
-            .on("end", -> done())
+            .on("end", -> callback())
+            .on("error", callback)
 
-      ], (err) -> console.log(err))
+      ], done)
 
   )
+
+  return mainStream
 
 
 module.exports.src = (moduleName, options) ->

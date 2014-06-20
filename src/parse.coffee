@@ -6,14 +6,19 @@ valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
 module.exports = parseRequireDefinitions = (config, file, callback) ->
 
-  ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : config.sourceMap)
+  try
+    ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : config.sourceMap)
+  catch err
+    callback(err)
+    return
+
   file.ast = ast
 
   definitions = []
   walk.ancestor(ast, CallExpression : (node, state) ->
 
     if node.callee.name == "define"
-      
+
       switch node.arguments.length
 
         when 2
@@ -38,7 +43,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
 
 
     if node.callee.name == "require" and node.arguments.length > 0 and node.arguments[0].type == "ArrayExpression"
-      
+
       defineAncestors = _.any(
         state.slice(0, -1)
         (ancestorNode) -> ancestorNode.type == "CallExpression" and (ancestorNode.callee.name == "define" or ancestorNode.callee.name == "require")
