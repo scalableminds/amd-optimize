@@ -3,7 +3,7 @@ through = require("through2")
 
 module.exports.printTree = printTree = (currentModule, prefix = "") ->
 
-  console.log(prefix, currentModule.name, "(#{path.relative(process.cwd(), currentModule.fileName)})")
+  console.log(prefix, currentModule.name, "(#{path.relative(process.cwd(), currentModule.file.relative)})")
 
   depPrefix = prefix
     .replace("├", "|")

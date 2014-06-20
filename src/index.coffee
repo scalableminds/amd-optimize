@@ -9,7 +9,7 @@ Readable     = require("stream").Readable
 
 trace        = require("./trace")
 exportModule = require("./export")
-
+util         = require("./util")
 
 firstChunk = (stream, callback) ->
 
@@ -45,41 +45,26 @@ collectModules = (module, omitInline = true) ->
     )
     if not (omitInline and currentModule.isInline) and not _.any(outputBuffer, name : currentModule.name)
       outputBuffer.push(currentModule)
-      outputStream.push(currentModule)
 
-  outputStream = new Readable( objectMode : true )
-  outputStream._read = ->
-    collector(module)
-    outputStream.push(null)
-    return
+  collector(module)
 
-  return outputStream
+  return outputBuffer
 
 
-readConfigStream = (config = {}) ->
+mergeOptionsFile = (file, options = {}) ->
 
-  return through.obj(
-    (file, enc, done) ->
-
-      config = _.merge(
-        {}
-        Function("""
-          var output,
-            require = {
-              config : function (config) { output = config; }
-            },
-            define = function () {};
-          #{file.contents.toString("utf8")};
-          return output;
-          """)()
-        config
-      )
-      done()
-
-    (done) ->
-
-      @push(config)
-      done()
+  return _.merge(
+    {}
+    Function("""
+      var output,
+        require = {
+          config : function (options) { output = options; }
+        },
+        define = function () {};
+      #{file.contents.toString("utf8")};
+      return output;
+      """)()
+    options
   )
 
 
@@ -96,13 +81,15 @@ defaultLoader = (fileBuffer, options) ->
 
 
 
-module.exports = rjs = (moduleName, options = {}) ->
+module.exports = rjs = (entryModuleName, options = {}) ->
 
+  # Default options
   options = _.defaults(
     options, {
       baseUrl : ""
       configFile : null
-      # exclude : []
+      exclude : []
+      excludeShallow : []
       # include : []
       findNestedDependencies : false
       # wrapShim : true
@@ -110,17 +97,22 @@ module.exports = rjs = (moduleName, options = {}) ->
     }
   )
 
-  if _.isString(options.configFile) or _.isArray(options.configFile)
-    options.configFile = vinylFs.src(options.configFile)
+  # Fix sloppy options
+  if _.isString(options.exclude)
+    options.exclude = [options.exclude]
 
-  configStream = readConfigStream(options)
-  if options.configFile
-    configStream = options.configFile.pipe(configStream)
-  else
-    configStream.end()
+  if _.isString(options.excludeShallow)
+    options.excludeShallow = [options.excludeShallow]
+
+  # Prepare config file stream
+  if _.isString(options.configFile) or _.isArray(options.configFile)
+    configFileStream = vinylFs.src(options.configFile)
+  else if _.isObject(options.configFile)
+    configFileStream = options.configFile
 
   fileBuffer = []
 
+  # Go!
   mainStream = through.obj(
     # transform
     (file, enc, done) ->
@@ -130,32 +122,82 @@ module.exports = rjs = (moduleName, options = {}) ->
     # flush
     (done) ->
 
-      outputStream = this
-
       async.waterfall([
 
         (callback) ->
+          # Read and merge external options
 
-          configStream
-            .on("data", (config) -> callback(null, config))
-            .on("error", callback)
+          if configFileStream
+            configFileStream.pipe(
+              through.obj(
+                (file, enc, done) ->
+                  options = mergeOptionsFile(file, options)
+                  done()
+                -> callback()
+              )
+            )
 
+          else
+            callback()
 
-        (config, callback) ->
+        (callback) ->
 
-          trace(moduleName, config, null, defaultLoader(fileBuffer, options), callback)
+          # Trace entry module
+          trace(entryModuleName, options, null, defaultLoader(fileBuffer, options), callback)
 
         (module, callback) ->
+
+          # Flatten modules list
+          callback(null, collectModules(module))
+
+
+        (modules, callback) ->
+
+          # Find excluded modules
+          if _.isArray(options.exclude)
+            async.map(
+              options.exclude
+              (moduleName, callback) ->
+                trace(moduleName, options, null, defaultLoader(fileBuffer, options), callback)
+
+              (err, excludedModules) ->
+                if err
+                  callback(err)
+                else
+                  callback(null, modules, _(excludedModules)
+                    .map((module) -> collectModules(module))
+                    .flatten()
+                    .pluck("name")
+                    .unique()
+                    .value())
+            )
+          else
+            callback(null, modules, [])
+
+
+
+        (modules, excludedModuleNames, callback) ->
           # printTree(module)
 
-          exportStream = exportModule(options)
-          exportStream.on("data", (file) ->
-            outputStream.push(file)
+          # Remove excluded modules
+          modules = _.reject(modules, (module) ->
+            return _.contains(excludedModuleNames, module.name) or
+            _.contains(options.excludeShallow, module.name)
           )
-          collectModules(module)
-            .pipe(exportStream)
+
+          # Fix and export all the files in correct order
+          exportStream = exportModule(options)
+          exportStream
+            .on("data", (file) ->
+              mainStream.push(file)
+            )
             .on("end", -> callback())
             .on("error", callback)
+
+          modules.forEach(exportStream.write.bind(exportStream))
+          exportStream.end()
+
+          # Done!
 
       ], done)
 

@@ -169,9 +169,29 @@ describe "src", ->
 
 describe "include + exclude", ->
 
-  it "should exclude modules and their dependency tree"
+  it "should exclude modules and their dependency tree", (done) ->
 
-  it "should shallowly exclude modules"
+    checkExpectedFiles(
+      ["foo.js"]
+      vinylfs.src("#{dir}/fixtures/inexclude/*.js")
+        .pipe(amdOptimize(
+          "foo"
+          exclude : ["bar"]
+        ))
+      done
+    )
+
+  it "should shallowly exclude modules", (done) ->
+
+    checkExpectedFiles(
+      ["foo.js"]
+      vinylfs.src("#{dir}/fixtures/inexclude/*.js")
+        .pipe(amdOptimize(
+          "foo"
+          excludeShallow : ["baz"]
+        ))
+      done
+    )
 
   it "should include modules even if they had been excluded"
 
