@@ -1,6 +1,6 @@
 {
   "name": "amd-optimize",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An AMD (i.e. RequireJS) optimizer that's stream-friendly. Made for gulp. (WIP)",
   "main": "lib/index.js",
   "scripts": {
