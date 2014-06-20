@@ -254,6 +254,7 @@ eventStream.merge(
 * No [RequireJS plugins](http://requirejs.org/docs/api.html#plugins).
 * No [`exclude` or `include` configuration](http://requirejs.org/docs/optimization.html#basics).
 * No [CommonJS module definitions](http://requirejs.org/docs/whyamd.html#sugar).
+* No [circular dependencies](http://requirejs.org/docs/api.html#circular)
 
 ## Tests
 1. Install npm dev dependencies `npm install`

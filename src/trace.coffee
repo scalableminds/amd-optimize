@@ -8,7 +8,7 @@ parse     = require("./parse")
 
 
 class Module
-  constructor : (@name, @file, @deps = []) -> 
+  constructor : (@name, @file, @deps = []) ->
     @isShallow = false
     @isShimmed = false
     @isAnonymous = false
@@ -20,11 +20,13 @@ class Module
 
 module.exports = traceModule = (startModuleName, config, allModules = [], fileLoader, callback) ->
 
+  foundModuleNames = []
+
   resolveModuleName = (moduleName, relativeTo = "") ->
 
     if moduleName[0] == "."
       moduleName = path.join(path.dirname(relativeTo), moduleName)
-    
+
     if config.map and config.map[relativeTo] and config.map[relativeTo][moduleName]
       moduleName = config.map[relativeTo][moduleName]
 
@@ -52,10 +54,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
   resolveInlinedModule = (moduleName, deps, astNode, vinylFile, callback) ->
 
     async.waterfall([
-      
+
       (callback) -> resolveModules(deps, callback)
-      
-      (modules, callback) -> 
+
+      (modules, callback) ->
         module = new Module(moduleName, vinylFile, _.compact(modules))
         module.hasDefine = true
         module.isInline = true
@@ -81,13 +83,19 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
       callback(null, emitModule(module))
       return
 
+    if _.contains(foundModuleNames, moduleName)
+      callback(new Error("Circular dependency detected. Module '#{moduleName}' has been processed before."))
+      return
+    else
+      foundModuleNames.push(moduleName)
+
     module = null
 
     # console.log("Resolving", moduleName, fileName)
 
     async.waterfall([
 
-      (callback) -> 
+      (callback) ->
         fileLoader(fileName, callback)
 
       (file, callback) ->
@@ -116,10 +124,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
           return
 
 
-        module.hasDefine = _.any(definitions, (def) -> 
+        module.hasDefine = _.any(definitions, (def) ->
           return def.method == "define" and (def.moduleName == undefined or def.moduleName == moduleName)
         )
-        
+
         async.mapSeries(
           definitions
           (def, callback) ->
@@ -162,7 +170,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
                 console.log("[warn]", "Module '#{module.name}' is shimmed even though it has a proper define.")
 
               module.isShimmed = true
-          
+
               if shim.exports
                 module.exports = shim.exports
 
@@ -191,7 +199,8 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
   emitModule = (module) ->
 
-    allModules.push(module)
+    if not _.any(allModules, name : module.name)
+      allModules.push(module)
     return module
 
 

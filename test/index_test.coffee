@@ -114,9 +114,6 @@ describe "core", ->
     )
 
 
-  it "should trace CommonJS-style module definitions"
-
-
 describe "src", ->
 
   it "should work with a default file loader", (done) ->
@@ -436,6 +433,7 @@ describe "errors", ->
       done()
     )
 
+
   it "should throw a syntax error, when parsing goes wrong", (done) ->
 
     amdOptimize.src(
@@ -446,4 +444,29 @@ describe "errors", ->
       assert.equal("SyntaxError", err.name)
       done()
     )
+
+
+  it "should throw an error on plain circular dependencies", (done) ->
+
+    amdOptimize.src(
+      "cycle1"
+      baseUrl : "test/fixtures/errors"
+    ).on("error", (err) ->
+      assert.ok(util.isError(err))
+      done()
+    )
+
+
+  it "should work with circular dependencies when exports is used"
+  # , (done) ->
+  #   # http://requirejs.org/docs/api.html#circular
+
+  #   checkExpectedFiles(
+  #     ["cycle_exports1.js", "cycle_exports2.js"]
+  #     amdOptimize.src(
+  #       "cycle_exports1"
+  #       baseUrl : "test/fixtures/errors"
+  #     )
+  #     done
+  #   )
 
