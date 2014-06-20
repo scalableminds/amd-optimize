@@ -38,7 +38,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     if config.paths and config.paths[moduleName]
       moduleName = config.paths[moduleName]
 
-    if /!|^exports$|^require$|^empty:/.test(moduleName)
+    if /!|^exports$|^require$|^module$|^empty:/.test(moduleName)
       return
     else
       return moduleName

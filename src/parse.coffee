@@ -21,14 +21,30 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
 
       switch node.arguments.length
 
+        when 1
+          # define(function (require, exports, module) {})
+          if node.arguments[0].type == "FunctionExpression" and
+          node.arguments[0].params.length > 0
+
+            deps = []
+            walk.simple(node.arguments[0], VariableDeclaration : (node) ->
+              node.declarations.forEach( ({ id: left, init: right }) ->
+                if right.type == "CallExpression" and right.callee.name == "require"
+                  deps.push(right.arguments[0].value)
+              )
+            )
+
         when 2
           switch node.arguments[0].type
             when "Literal"
+              # define("name", function () {})
               moduleName = node.arguments[0].value
             when "ArrayExpression"
+              # define(["dep"], function () {})
               deps = valuesFromArrayExpression(node.arguments[0])
 
         when 3
+          # define("name", ["dep"], function () {})
           moduleName = node.arguments[0].value
           deps = valuesFromArrayExpression(node.arguments[1])
 

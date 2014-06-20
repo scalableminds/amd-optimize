@@ -470,3 +470,14 @@ describe "errors", ->
   #     done
   #   )
 
+
+describe "commonjs", ->
+
+  it "should parse modules in simplified commonjs notation", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "foo.js"]
+      vinylfs.src("#{dir}/fixtures/commonjs/*.js")
+        .pipe(amdOptimize("foo"))
+      done
+    )
