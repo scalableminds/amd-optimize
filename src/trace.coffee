@@ -5,10 +5,13 @@ async     = require("async")
 VinylFile = require("vinyl")
 
 parse     = require("./parse")
+util      = require("./util")
 
 
 class Module
   constructor : (@name, @file, @deps = []) ->
+
+    @name = util.fixModuleName(@name)
     @isShallow = false
     @isShimmed = false
     @isAnonymous = false
@@ -25,7 +28,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
   resolveModuleName = (moduleName, relativeTo = "") ->
 
     if moduleName[0] == "."
-      moduleName = path.join(path.dirname(relativeTo), moduleName)
+      moduleName = util.fixModuleName(path.join(path.dirname(relativeTo), moduleName))
 
     if config.map and config.map[relativeTo] and config.map[relativeTo][moduleName]
       moduleName = config.map[relativeTo][moduleName]

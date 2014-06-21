@@ -23,3 +23,7 @@ module.exports.logger = logger = ->
     console.log(">>", path.relative(process.cwd(), file.path))
     callback(null, file)
   )
+
+
+module.exports.fixModuleName = fixModuleName = (moduleName) ->
+  return moduleName.replace(/\\/g, '/')

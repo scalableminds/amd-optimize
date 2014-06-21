@@ -27,14 +27,19 @@ checkExpectedFiles = (expectedFiles, stream, done) ->
 
 checkAst = (expectedFile, stream, tester, done) ->
 
+  foundFile = false
   stream
     .on("data", (file) ->
-      if file.relative == path.basename(expectedFile)
+      if file.relative == expectedFile
+        foundFile = true
         stringContents = file.contents.toString("utf8")
         ast = acorn.parse(stringContents)
         tester(ast, stringContents)
     )
-    .on("end", done)
+    .on("end", ->
+      assert.ok(foundFile)
+      done()
+    )
 
 
 describe "core", ->
@@ -110,6 +115,19 @@ describe "core", ->
           }
         ))
 
+      done
+    )
+
+  it "should only use forward slashes in module names", (done) ->
+
+    checkAst(
+      "fuz/ahah.js"
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize("duu"))
+      (ast) ->
+        walk.simple(ast, CallExpression : (node) ->
+          assert.equal(node.arguments[0].value, "fuz/ahah")
+        )
       done
     )
 
@@ -501,3 +519,4 @@ describe "commonjs", ->
         .pipe(amdOptimize("foo"))
       done
     )
+

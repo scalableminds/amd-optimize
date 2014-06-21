@@ -19,7 +19,7 @@ module.exports = fixModule = (options = {}) ->
     ast = module.file.ast
 
     if not module.hasDefine
-      
+
       defineReturnStatement = b.returnStatement(
         if module.exports
           b.identifier(module.exports)
@@ -54,12 +54,12 @@ module.exports = fixModule = (options = {}) ->
         ast.body.push(
           b.expressionStatement(defineCall)
         )
-    
+
     else if module.isAnonymous
 
       module.astNodes.forEach((astNode) ->
         if astNode.callee.name == "define" and 0 < astNode.arguments.length < 3 and astNode.arguments[0].type != "Literal"
-          
+
           astNode.arguments = [
             b.literal(module.name)
             b.arrayExpression(module.deps.map( (dep) -> b.literal(dep.name) ))
@@ -88,7 +88,7 @@ module.exports = fixModule = (options = {}) ->
     # TODO: Handle shimmed, mapped and relative deps
 
     # console.log escodegen.generate(module.file.ast, sourceMap : true).toString()
-    
+
 
     if options.sourceMap
       generatedCode = escodegen.generate(
