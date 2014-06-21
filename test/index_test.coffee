@@ -18,7 +18,7 @@ checkExpectedFiles = (expectedFiles, stream, done) ->
   expectedFiles = expectedFiles.slice(0)
   stream
     .on("data", (file) ->
-      assert.equal(expectedFiles.shift(), file.relative)
+      assert.equal(path.normalize(expectedFiles.shift()), file.relative)
     )
     .on("end", ->
       assert.equal(expectedFiles.length, 0)
@@ -30,14 +30,14 @@ checkAst = (expectedFile, stream, tester, done) ->
   foundFile = false
   stream
     .on("data", (file) ->
-      if file.relative == expectedFile
+      if file.relative == path.normalize(expectedFile)
         foundFile = true
         stringContents = file.contents.toString("utf8")
         ast = acorn.parse(stringContents)
         tester(ast, stringContents)
     )
     .on("end", ->
-      assert.ok(foundFile)
+      assert.ok(foundFile, "Expected file '#{expectedFile}' not found.")
       done()
     )
 
