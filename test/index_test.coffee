@@ -458,6 +458,21 @@ describe "special paths", ->
 
 describe "errors", ->
 
+  it "should throw a meaningful error when JS files have a SyntaxError", (done) ->
+
+    amdOptimize.src(
+      "return"
+      loader : amdOptimize.loader(
+        (name) -> "#{dir}/fixtures/errors/#{name}.js"
+      )
+    ).on("error", (err) ->
+      assert.ok(util.isError(err))
+      assert.ok(err.filename)
+      assert.ok(err.pos)
+      done()
+    )
+
+
   it "should passthrough the errors of loader streams", (done) ->
 
     amdOptimize.src(

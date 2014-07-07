@@ -9,6 +9,9 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
   try
     ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : config.sourceMap)
   catch err
+    if err instanceof SyntaxError
+      err.filename = file.path
+      err.message += " in #{file.path}"
     callback(err)
     return
 
