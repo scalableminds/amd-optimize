@@ -17,6 +17,7 @@ module.exports = fixModule = (options = {}) ->
       return
 
     ast = module.file.ast
+    delete module.file.ast
 
     if not module.hasDefine
 
