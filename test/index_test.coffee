@@ -131,6 +131,15 @@ describe "core", ->
       done
     )
 
+  it "should remove the ast property when done", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/core/*.js")
+      .pipe(amdOptimize("index"))
+      .on("data", (file) ->
+        assert(not ("ast" in file))
+      )
+      .on("end", done)
+
 
 describe "src", ->
 
