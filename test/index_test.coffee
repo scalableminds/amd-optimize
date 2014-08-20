@@ -491,8 +491,7 @@ describe "errors", ->
         -> coffee()
       )
     ).on("error", (err) ->
-      console.log(arguments)
-      assert.ok(util.isError(err))
+      assert.equal(err.name, "SyntaxError")
       done()
     )
 
