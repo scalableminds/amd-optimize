@@ -491,8 +491,7 @@ describe "errors", ->
         -> coffee()
       )
     ).on("error", (err) ->
-      console.log(err)
-      console.log(err.constructor)
+      console.log(arguments)
       assert.ok(util.isError(err))
       done()
     )
