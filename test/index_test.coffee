@@ -513,7 +513,7 @@ describe "errors", ->
         -> coffee()
       )
     ).on("error", (err) ->
-      assert.ok(util.isError(err))
+      assert.equal(err.name, "SyntaxError")
       done()
     )
 
