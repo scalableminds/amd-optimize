@@ -17,23 +17,24 @@
   "author": "Norman Rzepka <norman@scm.io> (http://scm.io)",
   "license": "MIT",
   "dependencies": {
-    "async": "~0.2.10",
-    "lodash": "~2.4.1",
-    "vinyl": "~0.2.3",
-    "vinyl-fs": "0.3.0",
     "acorn": "~0.5.0",
     "ast-types": "~0.3.16",
-    "escodegen": "~1.2.0",
-    "through2": "~0.4.1"
+    "async": "~0.2.10",
+    "escodegen": "^1.3.3",
+    "lodash": "~2.4.1",
+    "through2": "~0.4.1",
+    "vinyl": "^0.2.3",
+    "vinyl-fs": "^0.3.0",
+    "vinyl-sourcemaps-apply": "^0.1.1"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
     "gulp": "^3.8.1",
     "gulp-coffee": "^2.0.1",
-    "gulp-concat": "~2.1.7",
     "gulp-if": "0.0.5",
     "gulp-mocha": "^0.4.1",
     "gulp-plumber": "^0.6.3",
+    "gulp-sourcemaps": "^1.1.1",
     "gulp-uglify": "~0.2.1",
     "gulp-util": "~2.2.14"
   }

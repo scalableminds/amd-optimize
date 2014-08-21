@@ -5,6 +5,7 @@ util        = require("util")
 vinylfs     = require("vinyl-fs")
 coffee      = require("gulp-coffee")
 plumber     = require("gulp-plumber")
+sourcemaps  = require("gulp-sourcemaps")
 acorn       = require("acorn")
 walk        = require("acorn/util/walk")
 
@@ -139,6 +140,26 @@ describe "core", ->
         assert(not ("ast" in file))
       )
       .on("end", done)
+
+
+  it "should make anonymous modules explicitly-named", (done) ->
+
+    checkAst(
+      "foo.js"
+      vinylfs.src("#{dir}/fixtures/core/foo.js")
+        .pipe(amdOptimize("foo"))
+      (ast) ->
+        walk.simple(ast, CallExpression : (node) ->
+          if node.callee.name == "define"
+            # module name
+            assert.equal(node.arguments[0].value, "foo")
+            # dependency declarations
+            assert.equal(node.arguments[1].elements.length, 0)
+            # value
+            assert.equal(node.arguments[2].value, "FOO")
+        )
+      done
+    )
 
 
 describe "src", ->
@@ -298,6 +319,7 @@ describe "shim", ->
           assert(hasDefine)
       )
       .on("end", done)
+
 
   it "should wrap non-AMD modules with a `define` call", (done) ->
 
@@ -543,4 +565,35 @@ describe "commonjs", ->
         .pipe(amdOptimize("foo"))
       done
     )
+
+
+describe "source maps", ->
+
+  it "should create source maps", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/core/*.js")
+      .pipe(sourcemaps.init())
+      .pipe(amdOptimize("index"))
+      .on("data", (file) ->
+        assert(file.sourceMap?)
+        assert.equal(file.sourceMap.sources.toString(), file.relative)
+        assert.deepEqual(file.sourceMap, require("./expected/#{file.relative}.map.json"))
+      )
+      .on("end", done)
+
+
+  it "should apply source maps to existing transformations", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/core/*.coffee")
+      .pipe(sourcemaps.init())
+      .pipe(coffee())
+      .pipe(amdOptimize("index"))
+      .on("data", (file) ->
+        assert(file.sourceMap?)
+        assert(_.contains(file.sourceMap.sources.toString(), file.relative))
+        assert(_.contains(file.sourceMap.sources.toString(), file.relative.replace(".js", ".coffee")))
+      )
+      # .pipe(sourcemaps.write("."))
+      # .pipe(vinylfs.dest("#{dir}/.tmp"))
+      .on("end", done)
 

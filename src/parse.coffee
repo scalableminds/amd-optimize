@@ -7,7 +7,7 @@ valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 module.exports = parseRequireDefinitions = (config, file, callback) ->
 
   try
-    ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : config.sourceMap)
+    ast = acorn.parse(file.stringContents, sourceFile : file.relative, locations : file.sourceMap?)
   catch err
     if err instanceof SyntaxError
       err.filename = file.path

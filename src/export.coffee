@@ -1,12 +1,12 @@
-_         = require("lodash")
-b         = require("ast-types").builders
-escodegen = require("escodegen")
-through   = require("through2")
+_                    = require("lodash")
+b                    = require("ast-types").builders
+escodegen            = require("escodegen")
+through              = require("through2")
+vinylSourcemapsApply = require("vinyl-sourcemaps-apply")
 
 module.exports = fixModule = (options = {}) ->
 
   options = _.defaults(options,
-    sourceMap : false
     wrapShim : true
   )
 
@@ -58,8 +58,15 @@ module.exports = fixModule = (options = {}) ->
 
     else if module.isAnonymous
 
-      module.astNodes.forEach((astNode) ->
-        if astNode.callee.name == "define" and 0 < astNode.arguments.length < 3 and astNode.arguments[0].type != "Literal"
+# define("foo")
+# define(["123"], ->)
+
+      module.astNodes.forEach((astNode) =>
+        if astNode.callee.name == "define" and
+        (
+          astNode.arguments.length == 1 or
+          (astNode.arguments.length == 2 and astNode.arguments[0].type == "ArrayExpression")
+        )
 
           astNode.arguments = [
             b.literal(module.name)
@@ -91,28 +98,24 @@ module.exports = fixModule = (options = {}) ->
     # console.log escodegen.generate(module.file.ast, sourceMap : true).toString()
 
 
-    if options.sourceMap
+    sourceFile = module.file.clone()
+    sourceFile.sourceMap = module.file.sourceMap
+
+    if sourceFile.sourceMap
       generatedCode = escodegen.generate(
-        ast
-        sourceMap : true, sourceMapWithCode : true
+        ast,
+        sourceMap : true
+        sourceMapWithCode : true
       )
 
-      sourceFile = module.file.clone()
       sourceFile.contents = new Buffer(generatedCode.code, "utf8")
-
-      sourceMapFile = module.file.clone()
-      sourceMapFile.path += ".map"
-      sourceMapFile.contents = new Buffer(generatedCode.map.toString(), "utf8")
-
-      @push(sourceFile)
-      @push(sourceMapFile)
+      vinylSourcemapsApply(sourceFile, generatedCode.map.toJSON())
 
     else
       sourceFile = module.file.clone()
       sourceFile.contents = new Buffer(escodegen.generate(ast), "utf8")
 
-      @push(sourceFile)
-
+    @push(sourceFile)
     done()
 
   )
