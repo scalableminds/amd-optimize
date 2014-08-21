@@ -10,6 +10,7 @@
 * Wraps non-AMD dependencies
 * Supply a custom loader for on-demand loading
 * Leaves concatenation and minification to your preferred choice of modules
+* [gulp-sourcemaps](https://www.npmjs.org/package/gulp-sourcemaps) support
 
 # Example
 
