@@ -566,6 +566,15 @@ describe "commonjs", ->
       done
     )
 
+  it "should parse modules in shortend commonjs notation", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "fuz.js"]
+      vinylfs.src("#{dir}/fixtures/commonjs/*.js")
+        .pipe(amdOptimize("fuz"))
+      done
+    )
+
 
 describe "source maps", ->
 
