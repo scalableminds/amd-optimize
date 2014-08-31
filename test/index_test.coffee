@@ -566,12 +566,23 @@ describe "commonjs", ->
       done
     )
 
-  it "should parse modules in shortend commonjs notation", (done) ->
+
+  it "should parse modules in simplified commonjs notation (only `require` argument)", (done) ->
 
     checkExpectedFiles(
       ["bar.js", "fuz.js"]
       vinylfs.src("#{dir}/fixtures/commonjs/*.js")
         .pipe(amdOptimize("fuz"))
+      done
+    )
+
+
+  it "should parse modules in simplified commonjs notation (`require` as a statement)", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "faz.js"]
+      vinylfs.src("#{dir}/fixtures/commonjs/*.js")
+        .pipe(amdOptimize("faz"))
       done
     )
 

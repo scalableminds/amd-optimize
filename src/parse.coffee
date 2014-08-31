@@ -30,11 +30,9 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
           node.arguments[0].params.length > 0
 
             deps = []
-            walk.simple(node.arguments[0], VariableDeclaration : (node) ->
-              node.declarations.forEach( ({ id: left, init: right }) ->
-                if right.type == "CallExpression" and right.callee.name == "require"
-                  deps.push(right.arguments[0].value)
-              )
+            walk.simple(node.arguments[0], CallExpression : (node) ->
+              if node.callee.name == "require"
+                deps.push(node.arguments[0].value)
             )
 
         when 2
