@@ -417,6 +417,20 @@ describe "nested dependencies", ->
       done
     )
 
+  it "should trace nested dependencies, with `requirejs`", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "foo.js", "nested_requirejs.js"]
+
+      vinylfs.src("#{dir}/fixtures/core/*.js")
+        .pipe(amdOptimize(
+          "nested_requirejs"
+          findNestedDependencies : true
+        ))
+
+      done
+    )
+
 
 describe "config file", ->
 
@@ -474,7 +488,21 @@ describe "special paths", ->
     )
 
 
-  it "should apply prefix paths"
+  it "should apply prefix paths" # , (done) ->
+
+    # checkExpectedFiles(
+    #   ["fuz/ahah.js", "duz.js"]
+
+    #   vinylfs.src("#{dir}/fixtures/core/*.js")
+    #     .pipe(amdOptimize(
+    #       "duz"
+    #       paths : {
+    #         fuu : "fuz"
+    #       }
+    #     ))
+
+    #   done
+    # )
 
 
   it "should ignore `exports` and `require` dependencies", (done) ->

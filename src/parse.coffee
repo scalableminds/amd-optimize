@@ -31,7 +31,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
 
             deps = []
             walk.simple(node.arguments[0], CallExpression : (node) ->
-              if node.callee.name == "require"
+              if node.callee.name == "require" or node.callee.name == "requirejs"
                 deps.push(node.arguments[0].value)
             )
 
@@ -59,11 +59,11 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
       isInsideDefine = true
 
 
-    if node.callee.name == "require" and node.arguments.length > 0 and node.arguments[0].type == "ArrayExpression"
+    if (node.callee.name == "require" or node.callee.name == "requirejs") and node.arguments.length > 0 and node.arguments[0].type == "ArrayExpression"
 
       defineAncestors = _.any(
         state.slice(0, -1)
-        (ancestorNode) -> ancestorNode.type == "CallExpression" and (ancestorNode.callee.name == "define" or ancestorNode.callee.name == "require")
+        (ancestorNode) -> ancestorNode.type == "CallExpression" and (ancestorNode.callee.name == "define" or ancestorNode.callee.name == "require" or ancestorNode.callee.name == "requirejs")
       )
       if config.findNestedDependencies or not defineAncestors
         definitions.push(
