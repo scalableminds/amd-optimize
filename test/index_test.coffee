@@ -132,6 +132,17 @@ describe "core", ->
       done
     )
 
+
+  it "should keep the relative paths", (done) ->
+
+    checkExpectedFiles(
+      ["fuz/ahah.js", "duu.js"]
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize("duu"))
+      done
+    )
+
+
   it "should remove the ast property when done", (done) ->
 
     vinylfs.src("#{dir}/fixtures/core/*.js")
