@@ -17,15 +17,15 @@
   "author": "Norman Rzepka <norman@scm.io> (http://scm.io)",
   "license": "MIT",
   "dependencies": {
-    "acorn": "~0.5.0",
+    "acorn": "^0.9.0",
     "ast-types": "~0.3.16",
     "async": "~0.2.10",
-    "escodegen": "^1.3.3",
+    "escodegen": "^1.4.1",
     "lodash": "~2.4.1",
     "through2": "~0.4.1",
     "vinyl": "^0.2.3",
-    "vinyl-fs": "^0.3.0",
-    "vinyl-sourcemaps-apply": "^0.1.1"
+    "vinyl-fs": "^0.3.9",
+    "vinyl-sourcemaps-apply": "^0.1.4"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",

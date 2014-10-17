@@ -2,6 +2,7 @@ _                    = require("lodash")
 b                    = require("ast-types").builders
 escodegen            = require("escodegen")
 through              = require("through2")
+path                 = require("path")
 vinylSourcemapsApply = require("vinyl-sourcemaps-apply")
 
 module.exports = fixModule = (options = {}) ->
@@ -106,6 +107,7 @@ module.exports = fixModule = (options = {}) ->
         ast,
         sourceMap : true
         sourceMapWithCode : true
+        file : sourceFile.sourceMap.file
       )
 
       sourceFile.contents = new Buffer(generatedCode.code, "utf8")

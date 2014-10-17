@@ -34,6 +34,12 @@ function logger() {
 }
 
 
+gulp.task("sample", function () {
+  return gulp.src("test/fixtures/core/**/*.js")
+    .pipe(rjs("nested_requirejs"))
+    .pipe(gulp.dest(".tmp"));
+})
+
 gulp.task("example", function () {
   return gulp.src("build/{javascripts,bower_components}/**/*.{js,coffee}")
     .pipe(gif(function (file) { return path.extname(file.path) == ".coffee"; }, coffee()))
