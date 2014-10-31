@@ -472,6 +472,22 @@ describe "config file", ->
 
 
 
+describe "deps", ->
+
+  it "should compile", (done) ->
+
+    checkExpectedFiles(
+      ["index.js"]
+      vinylfs.src(["#{dir}/fixtures/**/*.js"], {base: "#{dir}/fixtures/deps/src"})
+        .pipe(amdOptimize(
+          "index"
+          configFile : "#{dir}/fixtures/deps/config.js"
+        ))
+      done
+    )
+
+
+
 describe "special paths", ->
 
   it "should ignore requirejs plugins", (done) ->
