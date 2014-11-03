@@ -173,6 +173,19 @@ describe "core", ->
     )
 
 
+  it "should trace relative dependencies of `path`-configured modules", (done) ->
+
+    checkExpectedFiles(
+      ["../deps/extra/lib/helper.js", "../deps/extra/extra.js", "index.js"]
+      vinylfs.src(["#{dir}/fixtures/deps/**/*.js"], { base: "#{dir}/fixtures/deps/src" })
+        .pipe(amdOptimize(
+          "index"
+          configFile : "#{dir}/fixtures/deps/config.js"
+        ))
+      done
+    )
+
+
 describe "src", ->
 
   it "should work with a default file loader", (done) ->
@@ -469,23 +482,6 @@ describe "config file", ->
         ))
       done
     )
-
-
-
-describe "deps", ->
-
-  it "should compile", (done) ->
-
-    checkExpectedFiles(
-      ["index.js"]
-      vinylfs.src(["#{dir}/fixtures/**/*.js"], {base: "#{dir}/fixtures/deps/src"})
-        .pipe(amdOptimize(
-          "index"
-          configFile : "#{dir}/fixtures/deps/config.js"
-        ))
-      done
-    )
-
 
 
 describe "special paths", ->

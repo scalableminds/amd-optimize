@@ -1,7 +1,7 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    define(function () {
-        return 'helper';
-    });
+  define(function () {
+    return 'helper';
+  });
 }());

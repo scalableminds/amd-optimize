@@ -27,6 +27,8 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
   resolveModuleName = (moduleName, relativeTo = "") ->
 
+    relativeTo = resolveModuleFileName(relativeTo)
+
     if moduleName[0] == "."
       moduleName = util.fixModuleName(path.join(path.dirname(relativeTo), moduleName))
 

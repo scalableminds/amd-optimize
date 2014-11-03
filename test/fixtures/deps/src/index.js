@@ -1,7 +1,7 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    define(['extra'], function (extra) {
-        return 'hello:' + extra;
-    });
+  define(['extra'], function (extra) {
+    return 'hello:' + extra;
+  });
 }());

@@ -1,7 +1,7 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    define(['./lib/helper'], function (helper) {
-        return 'extra:' + helper;
-    });
+  define(['./lib/helper'], function (helper) {
+    return 'extra:' + helper;
+  });
 }());

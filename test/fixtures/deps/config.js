@@ -1,9 +1,9 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    require.config({
-        paths: {
-            extra: 'deps/extra/extra'
-        }
-    });
+  require.config({
+    paths: {
+      extra: '../deps/extra/extra'
+    }
+  });
 }());
