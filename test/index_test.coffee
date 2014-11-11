@@ -119,6 +119,27 @@ describe "core", ->
       done
     )
 
+  it "should work with `map` config for renamed modules (`paths`)", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "duz.js", "index.js"]
+
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize(
+          "index"
+          paths : {
+            foo : "duz"
+          }
+          map : {
+            foo : {
+              "fuu/ahah" : "bar"
+            }
+          }
+        ))
+
+      done
+    )
+
   it "should only use forward slashes in module names", (done) ->
 
     checkAst(

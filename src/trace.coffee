@@ -27,10 +27,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
   resolveModuleName = (moduleName, relativeTo = "") ->
 
-    relativeTo = resolveModuleFileName(relativeTo)
+    relativeToFileName = resolveModuleFileName(relativeTo)
 
     if moduleName[0] == "."
-      moduleName = util.fixModuleName(path.join(path.dirname(relativeTo), moduleName))
+      moduleName = util.fixModuleName(path.join(path.dirname(relativeToFileName), moduleName))
 
     if config.map and config.map[relativeTo] and config.map[relativeTo][moduleName]
       moduleName = config.map[relativeTo][moduleName]
