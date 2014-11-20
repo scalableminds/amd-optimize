@@ -20,6 +20,12 @@ module.exports = fixModule = (options = {}) ->
     ast = module.file.ast
     delete module.file.ast
 
+    hasComments = !!module.file.comments
+    if (hasComments)
+      ast = escodegen.attachComments ast, module.file.comments, module.file.tokens
+      delete module.file.comments
+      delete module.file.tokens
+
     if not module.hasDefine
 
       defineReturnStatement = b.returnStatement(
@@ -105,6 +111,7 @@ module.exports = fixModule = (options = {}) ->
     if sourceFile.sourceMap
       generatedCode = escodegen.generate(
         ast,
+        comment: hasComments
         sourceMap : true
         sourceMapWithCode : true
         file : sourceFile.sourceMap.file
@@ -115,7 +122,7 @@ module.exports = fixModule = (options = {}) ->
 
     else
       sourceFile = module.file.clone()
-      sourceFile.contents = new Buffer(escodegen.generate(ast), "utf8")
+      sourceFile.contents = new Buffer(escodegen.generate(ast, {comment: hasComments}), "utf8")
 
     @push(sourceFile)
     done()
