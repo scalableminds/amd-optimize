@@ -682,10 +682,26 @@ describe "source maps", ->
       .pipe(amdOptimize("index"))
       .on("data", (file) ->
         assert(file.sourceMap?)
-        assert(_.contains(file.sourceMap.sources.toString(), file.relative))
-        assert(_.contains(file.sourceMap.sources.toString(), file.relative.replace(".js", ".coffee")))
+        assert(_.contains(file.sourceMap.sources, file.relative))
+        assert(_.contains(file.sourceMap.sources, file.relative.replace(".js", ".coffee")))
       )
       # .pipe(sourcemaps.write("."))
       # .pipe(vinylfs.dest("#{dir}/.tmp"))
       .on("end", done)
+
+
+  it "should keep the relative paths", (done) ->
+
+    checkExpectedFiles(
+      ["fuz/ahah.js", "duu.js"]
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize("duu"))
+        .pipe(sourcemaps.init())
+        .on("data", (file) ->
+          assert(file.sourceMap?)
+          assert.equal(file.sourceMap.file, file.relative)
+          assert(_.contains(file.sourceMap.sources, file.relative))
+        )
+      done
+    )
 
