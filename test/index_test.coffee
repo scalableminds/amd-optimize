@@ -674,6 +674,19 @@ describe "source maps", ->
       .on("end", done)
 
 
+  it "should create source maps for files with comments", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/comments/*.js")
+      .pipe(sourcemaps.init())
+      .pipe(amdOptimize("comment"))
+      .on("data", (file) ->
+        assert(file.sourceMap?)
+        assert.equal(file.sourceMap.sources.toString(), file.relative)
+        assert.deepEqual(file.sourceMap, require("./expected/#{file.relative}.map.json"))
+      )
+      .on("end", done)
+
+
   it "should apply source maps to existing transformations", (done) ->
 
     vinylfs.src("#{dir}/fixtures/core/*.coffee")

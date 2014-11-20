@@ -25,8 +25,10 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
     return
 
   file.ast = ast
-  file.comments = comments
-  file.tokens = tokens
+
+  if (config.preserveComments)
+    file.comments = comments
+    file.tokens = tokens
 
   definitions = []
   walk.ancestor(ast, CallExpression : (node, state) ->
