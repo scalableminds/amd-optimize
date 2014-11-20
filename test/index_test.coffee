@@ -1,6 +1,7 @@
 _           = require("lodash")
 assert      = require("assert")
 path        = require("path")
+fs          = require("fs")
 util        = require("util")
 vinylfs     = require("vinyl-fs")
 coffee      = require("gulp-coffee")
@@ -678,11 +679,12 @@ describe "source maps", ->
 
     vinylfs.src("#{dir}/fixtures/comments/*.js")
       .pipe(sourcemaps.init())
-      .pipe(amdOptimize("comment"))
+      .pipe(amdOptimize("comment", {preserveComments: true}))
       .on("data", (file) ->
         assert(file.sourceMap?)
         assert.equal(file.sourceMap.sources.toString(), file.relative)
         assert.deepEqual(file.sourceMap, require("./expected/#{file.relative}.map.json"))
+        assert.equal(file.stringContents, fs.readFileSync(dir + "/fixtures/comments/#{file.relative}").toString())
       )
       .on("end", done)
 
