@@ -72,7 +72,9 @@ defaultLoader = (fileBuffer, options) ->
 
   return (name, callback) ->
 
-    if file = _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))
+    if options.baseUrl and file = _.detect(fileBuffer, path : path.resolve(options.baseUrl, name + ".js"))
+      callback(null, file)
+    else if file = _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))
       callback(null, file)
     else if options.loader
       options.loader(name, callback)

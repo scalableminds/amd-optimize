@@ -4,6 +4,7 @@ path        = require("path")
 util        = require("util")
 vinylfs     = require("vinyl-fs")
 coffee      = require("gulp-coffee")
+concat      = require("gulp-concat")
 plumber     = require("gulp-plumber")
 sourcemaps  = require("gulp-sourcemaps")
 acorn       = require("acorn")
@@ -701,6 +702,27 @@ describe "source maps", ->
           assert(file.sourceMap?)
           assert.equal(file.sourceMap.file, file.relative)
           assert(_.contains(file.sourceMap.sources, file.relative))
+        )
+      done
+    )
+
+  it "should keep the relative paths #2", (done) ->
+
+    checkExpectedFiles(
+      ["concat.js.map", "concat.js"]
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize("duu", {
+          baseUrl: "#{dir}/fixtures/core"
+        }))
+        .pipe(sourcemaps.init())
+        .pipe(concat("concat.js"))
+        .pipe(sourcemaps.write("."))
+        .on("data", (file) ->
+          if path.extname(file.relative) == ".map"
+            sourceMap = JSON.parse(file.contents)
+            assert(sourceMap?)
+            assert(_.contains(sourceMap.sources, "fuz/ahah.js"))
+            assert(_.contains(sourceMap.sources, "duu.js"))
         )
       done
     )
