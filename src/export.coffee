@@ -22,7 +22,7 @@ module.exports = fixModule = (options = {}) ->
 
     hasComments = !!module.file.comments
     if (hasComments)
-      ast = escodegen.attachComments ast, module.file.comments, module.file.tokens
+      escodegen.attachComments ast, module.file.comments, module.file.tokens
       delete module.file.comments
       delete module.file.tokens
 
