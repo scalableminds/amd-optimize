@@ -96,6 +96,7 @@ module.exports = rjs = (entryModuleName, options = {}) ->
       findNestedDependencies : false
       # wrapShim : true
       loader : null
+      preserveComments : false
     }
   )
 

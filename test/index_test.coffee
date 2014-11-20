@@ -208,6 +208,18 @@ describe "core", ->
     )
 
 
+  it "should preserve comments", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/comments/*.js")
+      .pipe(amdOptimize("comment", {
+        preserveComments : true
+      }))
+      .on("data", (file) ->
+        assert(/^\/\//.test(file.contents.toString()))
+      )
+      .on("end", done)
+
+
 describe "src", ->
 
   it "should work with a default file loader", (done) ->
@@ -679,7 +691,9 @@ describe "source maps", ->
 
     vinylfs.src("#{dir}/fixtures/comments/*.js")
       .pipe(sourcemaps.init())
-      .pipe(amdOptimize("comment"))
+      .pipe(amdOptimize("comment", {
+        preserveComments : true
+      }))
       .on("data", (file) ->
         assert(file.sourceMap?)
         assert.equal(file.sourceMap.sources.toString(), file.relative)

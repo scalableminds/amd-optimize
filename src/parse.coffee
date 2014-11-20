@@ -7,16 +7,23 @@ valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 module.exports = parseRequireDefinitions = (config, file, callback) ->
 
   try
-    comments = []
-    tokens = []
-    ast = acorn.parse(
-      file.stringContents,
-      sourceFile : file.relative
-      locations : file.sourceMap?
-      ranges: true
-      onComment: comments
-      onToken: tokens
-    )
+    if config.preserveComments
+      comments = []
+      tokens = []
+      ast = acorn.parse(
+        file.stringContents,
+        sourceFile : file.relative
+        locations : file.sourceMap?
+        ranges: true
+        onComment: comments
+        onToken: tokens
+      )
+    else
+      ast = acorn.parse(
+        file.stringContents,
+        sourceFile : file.relative,
+        locations : file.sourceMap?
+      )
   catch err
     if err instanceof SyntaxError
       err.filename = file.path
@@ -26,7 +33,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
 
   file.ast = ast
 
-  if (config.preserveComments)
+  if config.preserveComments
     file.comments = comments
     file.tokens = tokens
 

@@ -122,7 +122,7 @@ module.exports = fixModule = (options = {}) ->
 
     else
       sourceFile = module.file.clone()
-      sourceFile.contents = new Buffer(escodegen.generate(ast, {comment: hasComments}), "utf8")
+      sourceFile.contents = new Buffer(escodegen.generate(ast, { comment: hasComments }), "utf8")
 
     @push(sourceFile)
     done()
