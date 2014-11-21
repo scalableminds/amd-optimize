@@ -680,7 +680,6 @@ describe "source maps", ->
 
     vinylfs.src("#{dir}/fixtures/comments/*.js")
       .pipe(sourcemaps.init())
-      .pipe(amdOptimize("comment", {preserveComments: true}))
       .pipe(amdOptimize("comment", {
         preserveComments : true
       }))
@@ -689,7 +688,10 @@ describe "source maps", ->
         assert.equal(file.sourceMap.sources.toString(), file.relative)
         assert.deepEqual(file.sourceMap, require("./expected/#{file.relative}.map.json"))
         # next line may fail if original contents have different indentation
-        assert.equal(file.stringContents, fs.readFileSync(dir + "/fixtures/comments/#{file.relative}").toString())
+        assert.equal(
+          file.stringContents,
+          fs.readFileSync(dir + "/fixtures/comments/#{file.relative}", "utf8")
+        )
       )
       .on("end", done)
 

@@ -19,7 +19,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
         onComment: comments
         onToken: tokens
       )
-      escodegen.attachComments ast, comments, tokens
+      escodegen.attachComments(ast, comments, tokens)
     else
       ast = acorn.parse(
         file.stringContents,
