@@ -688,6 +688,7 @@ describe "source maps", ->
         assert(file.sourceMap?)
         assert.equal(file.sourceMap.sources.toString(), file.relative)
         assert.deepEqual(file.sourceMap, require("./expected/#{file.relative}.map.json"))
+        # next line may fail if original contents have different indentation
         assert.equal(file.stringContents, fs.readFileSync(dir + "/fixtures/comments/#{file.relative}").toString())
       )
       .on("end", done)

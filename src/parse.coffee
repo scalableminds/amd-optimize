@@ -1,6 +1,7 @@
-_      = require("lodash")
-acorn  = require("acorn")
-walk   = require("acorn/util/walk")
+_         = require("lodash")
+acorn     = require("acorn")
+escodegen = require("escodegen")
+walk      = require("acorn/util/walk")
 
 valuesFromArrayExpression = (expr) -> expr.elements.map( (a) -> a.value )
 
@@ -18,6 +19,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
         onComment: comments
         onToken: tokens
       )
+      escodegen.attachComments ast, comments, tokens
     else
       ast = acorn.parse(
         file.stringContents,
@@ -32,10 +34,6 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
     return
 
   file.ast = ast
-
-  if config.preserveComments
-    file.comments = comments
-    file.tokens = tokens
 
   definitions = []
   walk.ancestor(ast, CallExpression : (node, state) ->
