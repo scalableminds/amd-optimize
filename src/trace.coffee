@@ -24,8 +24,15 @@ class Module
 module.exports = traceModule = (startModuleName, config, allModules = [], fileLoader, callback) ->
 
   foundModuleNames = []
+  textFiles = {}
 
   resolveModuleName = (moduleName, relativeTo = "") ->
+
+    isText = (moduleName.indexOf('text!') != -1)
+
+    # get rid of text! prefix
+    if (isText)
+      moduleName = moduleName.replace('text!', '')
 
     relativeToFileName = resolveModuleFileName(relativeTo)
 
@@ -34,6 +41,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
     if config.map and config.map[relativeTo] and config.map[relativeTo][moduleName]
       moduleName = config.map[relativeTo][moduleName]
+
+    # add resolved name to list of text files
+    if (isText)
+      textFiles[moduleName] = true
 
     return moduleName
 
@@ -95,13 +106,14 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
       foundModuleNames.push(moduleName)
 
     module = null
+    isTextFile = !!textFiles[moduleName]
 
     # console.log("Resolving", moduleName, fileName)
 
     async.waterfall([
 
       (callback) ->
-        fileLoader(fileName, callback)
+        fileLoader(fileName, callback, isTextFile)
 
       (file, callback) ->
 
@@ -117,6 +129,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
       (file, callback) ->
 
         file.stringContents = file.contents.toString("utf8")
+
+        if (isTextFile)
+          file.stringContents = 'define(function(){ return ' + JSON.stringify(file.stringContents) + '; });'
+
         module = new Module(moduleName, file)
         callback(null, file)
 

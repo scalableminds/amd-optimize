@@ -70,16 +70,18 @@ mergeOptionsFile = (file, options = {}) ->
 
 defaultLoader = (fileBuffer, options) ->
 
-  return (name, callback) ->
+  return (name, callback, asPlainFile) ->
 
-    if options.baseUrl and file = _.detect(fileBuffer, path : path.resolve(options.baseUrl, name + ".js"))
+    addJs = (!asPlainFile) and '.js' or ''
+
+    if options.baseUrl and file = _.detect(fileBuffer, path : path.resolve(options.baseUrl, name + addJs))
       callback(null, file)
-    else if file = _.detect(fileBuffer, relative : path.join(options.baseUrl, name + ".js"))
+    else if file = _.detect(fileBuffer, relative : path.join(options.baseUrl, name + addJs))
       callback(null, file)
     else if options.loader
       options.loader(name, callback)
     else
-      module.exports.loader()(path.join(options.baseUrl, name + ".js"), callback)
+      module.exports.loader()(path.join(options.baseUrl, name + addJs), callback)
 
 
 

@@ -1,5 +1,5 @@
 (function () {
-  define(["bar", "text!foo"], function (test) {
+  define(["bar", "plugin!foo"], function (test) {
     console.log(test);
   });
 })();
