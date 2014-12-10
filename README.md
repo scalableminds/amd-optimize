@@ -251,7 +251,7 @@ eventStream.merge(
 ```
 
 ## Current limitations
-* No [RequireJS plugins](http://requirejs.org/docs/api.html#plugins).
+* No [RequireJS plugins](http://requirejs.org/docs/api.html#plugins). Except for the `text` plugin.
 * No [`exclude` or `include` configuration](http://requirejs.org/docs/optimization.html#basics).
 * No [circular dependencies](http://requirejs.org/docs/api.html#circular)
 
