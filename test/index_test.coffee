@@ -208,6 +208,17 @@ describe "core", ->
       done
     )
 
+  it "should resolve module name shortcuts",  (done) ->
+    checkExpectedFiles(
+      ["path/to/module/foo.js", "index.js"]
+      vinylfs.src(["#{dir}/fixtures/shortcuts/**/*.js"], { base: "#{dir}/fixtures/shortcuts" })
+      .pipe(amdOptimize(
+          "index"
+          configFile : "#{dir}/fixtures/shortcuts/config.js"
+      ))
+      done
+    )
+
 
 describe "src", ->
 
