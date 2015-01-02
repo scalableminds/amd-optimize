@@ -34,11 +34,11 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     if (isText)
       moduleName = moduleName.replace('text!', '')
 
-    # Deal with module shortcuts
+    # deal with module path prefixes
     if config.paths and !config.paths[moduleName]
       slashIdx = moduleName.indexOf("/")
       if slashIdx > 0
-        eligiblePath = config.paths[moduleName.substr(0,slashIdx)];
+        eligiblePath = config.paths[moduleName.substr(0, slashIdx)];
         if eligiblePath
           moduleName =  eligiblePath + moduleName.substr(slashIdx)
 

@@ -208,17 +208,6 @@ describe "core", ->
       done
     )
 
-  it "should resolve module name shortcuts",  (done) ->
-    checkExpectedFiles(
-      ["path/to/module/foo.js", "index.js"]
-      vinylfs.src(["#{dir}/fixtures/shortcuts/**/*.js"], { base: "#{dir}/fixtures/shortcuts" })
-      .pipe(amdOptimize(
-          "index"
-          configFile : "#{dir}/fixtures/shortcuts/config.js"
-      ))
-      done
-    )
-
 
 describe "src", ->
 
@@ -563,21 +552,44 @@ describe "special paths", ->
     )
 
 
-  it "should apply prefix paths" # , (done) ->
+  it "should apply prefix paths", (done) ->
 
-    # checkExpectedFiles(
-    #   ["fuz/ahah.js", "duz.js"]
+    checkExpectedFiles(
+      ["fuz/ahah.js", "duz.js"]
 
-    #   vinylfs.src("#{dir}/fixtures/core/*.js")
-    #     .pipe(amdOptimize(
-    #       "duz"
-    #       paths : {
-    #         fuu : "fuz"
-    #       }
-    #     ))
+      vinylfs.src("#{dir}/fixtures/core/**/*.js")
+        .pipe(amdOptimize(
+          "duz"
+          paths : {
+            fuu : "fuz"
+          }
+        ))
 
-    #   done
-    # )
+      done
+    )
+
+
+  it "should apply prefix paths #2",  (done) ->
+    checkExpectedFiles(
+      ["path/to/module/foo.js", "index.js"]
+      vinylfs.src(["#{dir}/fixtures/shortcuts/**/*.js"], { base: "#{dir}/fixtures/shortcuts" })
+      .pipe(amdOptimize(
+          "index"
+          configFile : "#{dir}/fixtures/shortcuts/config.js"
+      ))
+      done
+    )
+
+
+  it "should apply prefix paths with loader",  (done) ->
+    checkExpectedFiles(
+      ["path/to/module/foo.js", "index.js"]
+      amdOptimize.src(
+        "index"
+        baseUrl : "#{dir}/fixtures/shortcuts"
+      )
+      done
+    )
 
 
   it "should ignore `exports` and `require` dependencies", (done) ->
