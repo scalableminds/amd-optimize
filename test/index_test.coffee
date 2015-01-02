@@ -223,6 +223,18 @@ describe "src", ->
     )
 
 
+  it "should work with a default file loader and keep the relative file names" #, (done) ->
+
+    # checkExpectedFiles(
+    #   ["fuz/ahah.js", "duu.js"]
+    #   amdOptimize.src(
+    #     "duu"
+    #     baseUrl : "test/fixtures/core"
+    #   )
+    #   done
+    # )
+
+
   it "should work with a custom file loader", (done) ->
 
     checkExpectedFiles(
@@ -572,21 +584,22 @@ describe "special paths", ->
   it "should apply prefix paths #2",  (done) ->
     checkExpectedFiles(
       ["path/to/module/foo.js", "index.js"]
-      vinylfs.src(["#{dir}/fixtures/shortcuts/**/*.js"], { base: "#{dir}/fixtures/shortcuts" })
-      .pipe(amdOptimize(
+      vinylfs.src("#{dir}/fixtures/shortcuts/**/*.js")
+        .pipe(amdOptimize(
           "index"
           configFile : "#{dir}/fixtures/shortcuts/config.js"
-      ))
+        ))
       done
     )
 
 
   it "should apply prefix paths with loader",  (done) ->
     checkExpectedFiles(
-      ["path/to/module/foo.js", "index.js"]
+      ["foo.js", "index.js"]
       amdOptimize.src(
         "index"
         baseUrl : "#{dir}/fixtures/shortcuts"
+        configFile : "#{dir}/fixtures/shortcuts/config.js"
       )
       done
     )
