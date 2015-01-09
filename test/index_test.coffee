@@ -715,6 +715,23 @@ describe "commonjs", ->
     )
 
 
+  it "should parse modules in simplified commonjs notation (`require` as a statement) #2", (done) ->
+
+    checkAst(
+      "foo.js"
+      vinylfs.src("#{dir}/fixtures/commonjs/*.js")
+        .pipe(amdOptimize("foo"))
+      (ast) ->
+        walk.simple(ast, CallExpression : (node) ->
+          if node.callee.name == "define"
+            assert.equal(node.arguments[1].elements[0].value, "require")
+            assert.equal(node.arguments[1].elements[1].value, "exports")
+            assert.equal(node.arguments[1].elements[2].value, "module")
+        )
+      done
+    )
+
+
 describe "source maps", ->
 
   it "should create source maps", (done) ->
