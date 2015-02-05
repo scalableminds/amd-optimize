@@ -71,6 +71,7 @@ module.exports = parseRequireDefinitions = (config, file, callback) ->
         method : "define"
         moduleName : moduleName
         deps : deps ? []
+        argumentsLength: node.arguments.length
         node : node
       )
 
