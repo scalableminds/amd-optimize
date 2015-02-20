@@ -6,4 +6,6 @@
     }
   });
 
+  require([ "foo" ], function(foo) {});
+
 })();

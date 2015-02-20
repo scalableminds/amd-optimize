@@ -57,10 +57,9 @@ mergeOptionsFile = (file, options = {}) ->
     {}
     Function("""
       var output,
-        requirejs = require = {
-          config : function (options) { output = options; }
-        },
+        requirejs = require = function() {},
         define = function () {};
+      require.config = function (options) { output = options; };
       #{file.contents.toString("utf8")};
       return output;
       """)()
