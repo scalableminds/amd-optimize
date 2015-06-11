@@ -669,6 +669,16 @@ describe "errors", ->
     )
 
 
+  it "should throw an error on multiple anonymous define calls", (done) ->
+
+    amdOptimize.src(
+      "multiple_anonymous_defines"
+      baseUrl : "test/fixtures/errors"
+    ).on("error", (err) ->
+      assert.ok(util.isError(err))
+      done()
+    )
+
   it "should work with circular dependencies when exports is used"
   # , (done) ->
   #   # http://requirejs.org/docs/api.html#circular

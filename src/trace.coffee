@@ -148,7 +148,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
       (file, definitions, callback) ->
 
-        if _.filter(definitions, (def) -> return def.method == "define" and def.moduleName == undefined).length > 1
+        if _.filter(definitions, (def) -> return def.method == "define" and def.moduleName == undefined and def.argumentsLength > 0).length > 1
           callback(new Error("A module must not have more than one anonymous 'define' calls."))
           return
 
