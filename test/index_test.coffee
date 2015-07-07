@@ -208,6 +208,20 @@ describe "core", ->
       done
     )
 
+  it "should preserve the original files", (done) ->
+
+    vinylfs.src("#{dir}/fixtures/core/*.js")
+      .pipe(amdOptimize(
+        "bar"
+        preserveFiles: true
+      ))
+      .on("data", (file) ->
+        assert.equal(
+          file.contents.toString("utf8"),
+          fs.readFileSync("#{dir}/fixtures/core/bar.js", "utf8"))
+      )
+      .on("end", done)
+
 
 describe "src", ->
 

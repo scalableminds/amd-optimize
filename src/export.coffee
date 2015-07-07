@@ -114,7 +114,7 @@ module.exports = fixModule = (options = {}) ->
       sourceFile.contents = new Buffer(generatedCode.code, "utf8")
       vinylSourcemapsApply(sourceFile, generatedCode.map.toJSON())
 
-    else
+    else if not options.preserveFiles
       sourceFile = module.file.clone()
       sourceFile.contents = new Buffer(escodegen.generate(ast, { comment: options.preserveComments }), "utf8")
 

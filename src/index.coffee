@@ -98,6 +98,7 @@ module.exports = rjs = (entryModuleName, options = {}) ->
       # wrapShim : true
       loader : null
       preserveComments : false
+      preserveFiles : false
     }
   )
 

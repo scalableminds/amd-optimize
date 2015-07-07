@@ -1,3 +1,4 @@
 (function () {
   define("TEST2");
+
 })();
