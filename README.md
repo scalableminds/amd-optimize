@@ -159,7 +159,7 @@ shim : {
 Type: `Boolean`  
 Default: `false`
 
-If `true` all files that you combine will not be altered from the source, should be used for outputted files to match the original source file, good for debugging and inline sourcemaps. A good code minifier or uglify will remove comments and strip new lines anyway.
+If `true` all files that you combine will not be altered from the source, should be used for inline sourcemaps to resemble the original source file, good for debugging. A good code minifier or uglify will remove comments and strip new lines anyway.
 
 
 #### options.loader
@@ -199,4 +199,76 @@ var concat = require("gulp-concat");
 
 gulp.src("src/scripts/**/*.js")
   .pipe(amdOptimize("index"))
-  .pipe(concat
+  .pipe(concat("index.js"))
+  .pipe(gulp.dest("dist"));
+```
+
+
+* [gulp-uglify](https://www.npmjs.org/package/gulp-uglify/): Minify the output files.
+
+```js
+var uglify = require("gulp-uglify");
+
+gulp.src("src/scripts/**/*.js")
+  .pipe(amdOptimize("index"))
+  .pipe(concat("index.js"))
+  .pipe(uglify())
+  .pipe(gulp.dest("dist"));
+```
+
+
+* [gulp-coffee](https://www.npmjs.org/package/gulp-coffee/): Precompile CoffeeScript source files. Or any other [language that compiles to JS](https://github.com/jashkenas/coffee-script/wiki/List-of-languages-that-compile-to-JS).
+
+```js
+var coffee = require("gulp-coffee");
+
+gulp.src("src/scripts/**/*.coffee")
+  .pipe(coffee())
+  .pipe(amdOptimize("index"))
+  .pipe(concat("index.js"))
+  .pipe(gulp.dest("dist"));
+```
+
+
+* [gulp-if](https://www.npmjs.org/package/gulp-if/): Conditionally pipe files through a transform stream. Useful for CoffeeScript precompilation.
+
+```js
+var gif = require("gulp-if");
+
+gulp.src("src/scripts/**/*.{coffee,js}")
+  .pipe(gif(function (file) { return path.extname(file) == ".coffee"; }, coffee()))
+  .pipe(amdOptimize("index"))
+  .pipe(concat("index.js"))
+  .pipe(gulp.dest("dist"));
+```
+
+* [event-stream](https://www.npmjs.org/package/event-stream/), [gulp-order](https://www.npmjs.org/package/gulp-order): Add files before or after
+
+```js
+var eventStream = require("event-stream");
+var order = require("gulp-order");
+
+eventStream.merge(
+  gulp.src("bower_components/almond/almond.js"),
+  gulp.src(amdOptimize("index"))
+    .pipe(concat("index.js"))
+)
+  .pipe(order(["**/almond.js", "**/index.js"]))
+  .pipe(concat("index.js"))
+  .pipe(gulp.dest("dist"));
+
+```
+
+## Current limitations
+* No [RequireJS plugins](http://requirejs.org/docs/api.html#plugins). Except for the `text` plugin.
+* No [`exclude` or `include` configuration](http://requirejs.org/docs/optimization.html#basics).
+* No [circular dependencies](http://requirejs.org/docs/api.html#circular)
+
+## Tests
+1. Install npm dev dependencies `npm install`
+2. Install gulp globally `npm install -g gulp`
+3. Run `gulp test`
+
+## License
+MIT &copy; scalable minds 2014
+
