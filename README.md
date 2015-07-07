@@ -159,7 +159,7 @@ shim : {
 Type: `Boolean`  
 Default: `false`
 
-If `true` all files that you combine will not be altered from the source, should be used for inline sourcemaps to resemble the original source file, good for debugging. A good code minifier or uglify will remove comments and strip new lines anyway.
+If `true` all files that you combine will not be altered from the source, should be used for outputted files to match the original source file, good for debugging and inline sourcemaps. A good code minifier or uglify will remove comments and strip new lines anyway.
 
 
 #### options.loader
