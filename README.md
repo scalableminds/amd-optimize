@@ -1,6 +1,9 @@
+This project is no longer actively maintained. I am happy to review incoming PRs, though. If you would like to become maintainer, please contact me. – [@normanrz](https://github.com/normanrz)
+
 # amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/amd-optimize/status.png)](https://drone.io/github.com/scalableminds/amd-optimize/latest)
 
 > An AMD ([RequireJS](http://requirejs.org/)) optimizer that's stream-friendly. Made for [gulp](http://gulpjs.com/). (WIP)
+
 
 # Features
 
