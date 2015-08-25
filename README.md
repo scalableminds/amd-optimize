@@ -1,4 +1,4 @@
-This project is no longer actively maintained. I am happy to review incoming PRs, though. If you would like to become maintainer, please contact me. – [@normanrz](https://github.com/normanrz)
+This project is no longer actively maintained. Mostly, because we use [Webpack](http://webpack.github.io/) in our projects now. I am happy to review incoming PRs, though. If you would like to become maintainer, please contact me. – [@normanrz](https://github.com/normanrz)
 
 # amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/amd-optimize/status.png)](https://drone.io/github.com/scalableminds/amd-optimize/latest)
 
