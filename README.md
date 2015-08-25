@@ -1,5 +1,5 @@
 # amd-optimize 
-Modified from (https://github.com/scalableminds/amd-optimize) adding support for RequireJS json plugin support. One can now use 'json!<path to json file>' in a define and it will be imported as a parsed JSON object.
+Modified from (https://github.com/scalableminds/amd-optimize) adding support for RequireJS json plugin support. One can now use 'json!path/to/json/file.json' in a define and it will be imported as a parsed JSON object.
 
 # NOTE
 This repo will be deleted if / when a pull request is accepted by the original repo. 
