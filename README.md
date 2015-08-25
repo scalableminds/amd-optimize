@@ -1,4 +1,8 @@
-# amd-optimize [![Build Status](https://drone.io/github.com/scalableminds/amd-optimize/status.png)](https://drone.io/github.com/scalableminds/amd-optimize/latest)
+# amd-optimize 
+Modified from (https://github.com/scalableminds/amd-optimize) adding support for RequireJS json plugin support. One can now use 'json!<path to json file>' in a define and it will be imported as a parsed JSON object.
+
+# NOTE
+This repo will be deleted if / when a pull request is accepted by the original repo. 
 
 > An AMD ([RequireJS](http://requirejs.org/)) optimizer that's stream-friendly. Made for [gulp](http://gulpjs.com/). (WIP)
 
