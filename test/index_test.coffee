@@ -547,20 +547,32 @@ describe "special paths", ->
 
   it "should ignore requirejs plugins (except text)", (done) ->
 
-    content = ''
-
     checkExpectedFiles(
       ["bar.js", "text.html", "plugin-text.js"]
       vinylfs.src("#{dir}/fixtures/core/*.*")
         .pipe(amdOptimize("plugin-text"))
       .on("data", (file) ->
-        #assert.equal(path.normalize(expectedFiles.shift()), file.relative)
-        if (file.relative == 'text.html')
-          content = file.contents.toString()
+        if file.relative == "text.html"
+          assert.equal(
+            file.contents.toString(),
+            fs.readFileSync("#{dir}/expected/text.html.js", "utf8").trim())
       )
-      () ->
-        assert.equal(content, 'define(\'text.html\', [], function () {\n    return \'<h1>This is text</h1>\';\n});')
-        done()
+      done
+    )
+
+  it "should ignore requirejs plugins (except json)", (done) ->
+
+    checkExpectedFiles(
+      ["bar.js", "test.json", "plugin-json.js"]
+      vinylfs.src("#{dir}/fixtures/core/*.*")
+        .pipe(amdOptimize("plugin-json"))
+      .on("data", (file) ->
+        if file.relative == 'test.json'
+          assert.equal(
+            file.contents.toString(),
+            fs.readFileSync("#{dir}/expected/test.json.js", "utf8").trim())
+      )
+      done
     )
 
   it "should ignore empty paths", (done) ->

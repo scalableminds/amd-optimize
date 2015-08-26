@@ -25,6 +25,7 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
   foundModuleNames = []
   textFiles = {}
+  jsonFiles = {}
 
   resolveModuleName = (moduleName, relativeTo = "") ->
 
@@ -33,6 +34,12 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     # get rid of text! prefix
     if (isText)
       moduleName = moduleName.replace('text!', '')
+
+    isJson = (moduleName.indexOf('json!') != -1)
+
+    # get rid of text! prefix
+    if (isJson)
+      moduleName = moduleName.replace('json!', '')
 
     # deal with module path prefixes
     if config.paths and !config.paths[moduleName]
@@ -53,6 +60,10 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     # add resolved name to list of text files
     if (isText)
       textFiles[moduleName] = true
+
+    # add resolved name to list of json files
+    if (isJson)
+      jsonFiles[moduleName] = true
 
     return moduleName
 
@@ -116,12 +127,14 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
     module = null
     isTextFile = !!textFiles[moduleName]
 
+    isJsonFile = !!jsonFiles[moduleName]
+
     # console.log("Resolving", moduleName, fileName)
 
     async.waterfall([
 
       (callback) ->
-        fileLoader(fileName, callback, isTextFile)
+        fileLoader(fileName, callback, isTextFile || isJsonFile)
 
       (file, callback) ->
 
@@ -140,6 +153,9 @@ module.exports = traceModule = (startModuleName, config, allModules = [], fileLo
 
         if (isTextFile)
           file.stringContents = 'define(function(){ return ' + JSON.stringify(file.stringContents) + '; });'
+
+        if (isJsonFile)
+          file.stringContents = 'define(function(){ return JSON.parse(' + JSON.stringify(file.stringContents) + '); });';
 
         module = new Module(moduleName, file)
         callback(null, file)
